@@ -5,12 +5,10 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./routes/index');
-
 var app = express();
 
 // routers define
-
+var index = require('./routes/index');
 var users = require('./routes/users')
 
 // uncomment after placing your favicon in /public
@@ -26,12 +24,10 @@ app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-  console.log('responseJson');
   next();
 });
 
 app.use('/user', users);
-
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -48,7 +44,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.send(err);
 });
 
 module.exports = app;
