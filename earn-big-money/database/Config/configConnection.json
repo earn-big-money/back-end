@@ -1,8 +1,0 @@
-{
-    "host"     : "localhost",
-    "user"     : "root",
-    "password" : "320=cg",
-    "port"     : "3306",
-    "database" : "EBM",
-    "timezone" : "08:00"
-}
