@@ -4,11 +4,11 @@ var router = express.Router();
 var db = require('./../controller/DBController_Yukikaze');
 
 router.post('/create', function(req, res, next) {
-
+	responseJson(res , 'create' );
 });
 
 router.post('/login', function(req, res, next) {
-
+	responseJson(res , 'login' );
 });
 
 router.get('/logout', function(req, res, next) {
