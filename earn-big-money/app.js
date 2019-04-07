@@ -9,6 +9,10 @@ var index = require('./routes/index');
 
 var app = express();
 
+// routers define
+
+var users = require('./routes/users')
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
