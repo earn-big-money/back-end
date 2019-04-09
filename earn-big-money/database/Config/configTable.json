@@ -4,7 +4,7 @@
 			"uid nvarchar(20),",
 			"uname nvarchar(20),",
 			"upassword nvarchar(20),",
-			"uphone int,",
+			"uphone char(11),",
 			"uemail nvarchar(20), ",
 			"umoney int not null default 0,",
 			"primary key(uid)",

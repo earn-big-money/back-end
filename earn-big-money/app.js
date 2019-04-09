@@ -4,12 +4,26 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 var app = express();
 
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
+app.use(session({
+    cookieName: 'xianqian_session',  
+    secret: 'earnbigmoney', //一个用来加密的随机字符串
+    duration: 40*60*1000, //session的过期时间
+    activeDuration: 5* 60*1000, // 激活时间
+    resave:true,
+    saveUninitialized:false
+}))
+
 // routers define
 var index = require('./routes/index');
-var users = require('./routes/users')
+var users = require('./routes/users');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -19,6 +33,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(req, res, next){
+　　res.locals.user = req.session.user;
+　　next();
+});
+
+
 // add access control header
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
@@ -27,7 +47,8 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use('/user', users);
+app.use('/index', index);
+app.use(/[a-hj-z]*/, users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -35,6 +56,7 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -46,5 +68,9 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.send(err);
 });
+
+app.listen(8080,function(){
+    console.log('run server');
+})
 
 module.exports = app;
