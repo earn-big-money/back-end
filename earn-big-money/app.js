@@ -13,7 +13,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(session({
-    cookieName: 'xianqian_session',  
+    cookieName: 'ebm',  
     secret: 'earnbigmoney', //一个用来加密的随机字符串
     duration: 40*60*1000, //session的过期时间
     activeDuration: 5* 60*1000, // 激活时间
@@ -48,7 +48,7 @@ app.use(function(req, res, next) {
 });
 
 app.use('/index', index);
-app.use(/[a-hj-z]*/, users);
+app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

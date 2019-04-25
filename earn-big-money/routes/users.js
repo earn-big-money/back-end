@@ -2,36 +2,23 @@ var express = require('express');
 var router = express.Router();
 var db = require('./../controller/DBController_Yukikaze');
 
-router.get('/register', function(req, res, next) {
-	res.render('register');
-});
-
-router.get('/login', function(req, res, next) {
-	res.render('login');
-});
-
-router.get('/query', function(req, res, next) {
-	res.render('query');
-});
-
 router.get('/', function(req, res, next) {
 	if(req.session.user) {
-		//res.redirect("/index");
 		res.send(req.session.user);
 	}
 	else {
-		res.redirect('/login');
+		res.send('no cookie');
 	}
 });
 
-router.post('/register', function(req, res, next) {
-	console.log(req.body);
+router.post('/create', function(req, res, next) {
+	console.log(req.body.id);
 	db.insertUser({
-		"uid": req.body.uid,
-		"uname": req.body.uname,
-		"upassword": req.body.upassword,
-		"uphone": req.body.uphone,
-		"uemail": req.body.uemail,
+		"uid": req.body.id,
+		"uname": req.body.username,
+		"upassword": req.body.password,
+		"uphone": req.body.phone,
+		"uemail": req.body.email,
 					}, //传入一个结构体
 					(resultFromDatabase)=>{
 						if (resultFromDatabase == null) {
@@ -46,30 +33,32 @@ router.post('/register', function(req, res, next) {
 });
 
 router.post('/login', function(req, res, next) {
+	console.log(req.body);
 	db.searchUser({
-		"uid": req.body.uid,
+		"uid": req.body.id,
 		"index" : ["uid", "uname", "upassword", "uphone", "uemail", "umoney"]
 					}, //传入一个结构体
 					(resultFromDatabase)=>{
 						console.log(resultFromDatabase[0]); // 取下标为0即可
-						if (resultFromDatabase[0] == undefined) {
-							res.send("用户不存在")
-						}
-						else if (req.body.upassword !== resultFromDatabase[0].upassword) {
-							//console.log(req.session.user);
-							res.send("密码错误！");
+						if (resultFromDatabase[0] == undefined || 
+						req.body.password !== resultFromDatabase[0].upassword) {
+							res.status(400);
+							res.send("Incorrect username or password");
 						}
 						else {
-							req.session.user = resultFromDatabase[0];
-							//res.redirect("/index");
-							res.send(req.session.user);
+							req.session.regenerate((err) => {
+								req.session.user = resultFromDatabase[0];
+								res.send("Success");
+							});
 						}
 					});//回调函数，
 });
 
 router.get('/logout', function(req, res, next) {
-	req.session.user = null;
-	res.redirect("/login");
+	req.session.destroy((err) => {
+		res.clearCookie("ebm");
+		res.send("Success");
+	});
 });
 
 router.post('/query', function(req, res, next) {
