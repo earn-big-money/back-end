@@ -12,7 +12,6 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/create', function(req, res, next) {
-	console.log(req.body.id);
 	db.insertUser({
 		"uid": req.body.id,
 		"uname": req.body.username,
@@ -22,12 +21,11 @@ router.post('/create', function(req, res, next) {
 					}, //传入一个结构体
 					(resultFromDatabase)=>{
 						if (resultFromDatabase == null) {
-							res.send("id已存在！");
+							res.status(400);
+							res.send({"msg" : "Invaild message"});
 						}
 						else {
-							req.session.user = req.body;
-							//res.redirect("/index");
-							res.send(req.session.user);
+							res.send({"msg" : "Success"});
 						}
 					});//回调函数，
 });
