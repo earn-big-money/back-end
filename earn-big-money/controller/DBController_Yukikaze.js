@@ -137,9 +137,9 @@ var dbController = function() {
 	// 同时更新duty和userDuty
 	this.updateDutyForUser = function(uid, duty, callback){
 		let temp_controller = new dbController();
-		temp_controller.insertDuty(duty, (result) => {
+		temp_controller.updateDuty(duty, (result) => {
 			if(result == null){ callback(null); return; }
-			temp_controller.insertUserDuty(
+			temp_controller.updateUserDuty(
 			{
 				"uid": uid,
 				"did": duty["did"],
