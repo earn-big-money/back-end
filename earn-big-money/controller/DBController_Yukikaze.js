@@ -1,8 +1,9 @@
 var database = require('./../database/DataBaseMySQL');
+var utils = require('./Utils_public');
 
 var dbController = function() {
 	
-	this.version = "1.1.0";
+	this.version = "1.2.0";
 	// 正确性验证，暂时无用
 	this.structureAnalysis = function(struc) {
 		
@@ -34,9 +35,6 @@ var dbController = function() {
 		database.dataBaseControl(sql, value, callback);
 	};
 	
-	this.insertDuty = function(duty) {
-		
-	};
 	// user是一个结构体，callback是回调函数
 	/*
 	{
@@ -51,7 +49,7 @@ var dbController = function() {
 		if(user["uid"]){
 			for(var info in user){
 				if(info != "uid"){
-					key.push([info,"?"].join(" = "))
+					key.push([info,"?"].join(" = "));
 					value.push(user[info]);
 				}	
 			}
@@ -149,6 +147,7 @@ var dbController = function() {
 			callback)
 		});
 	}
+	
 	this.insertDuty = function(duty, callback){
 		let key = [];
 		let value = [];
@@ -167,7 +166,7 @@ var dbController = function() {
 		if(duty["did"]){
 			for(var info in duty){
 				if(info != "did"){
-					key.push([info,"?"].join(" = "))
+					key.push([info,"?"].join(" = "));
 					value.push(duty[info]);
 				}	
 			}
@@ -236,7 +235,7 @@ var dbController = function() {
 		if(userDuty["did"] && userDuty["uid"]){
 			for(var info in userDuty){
 				if(info != "did" && info != "uid"){
-					key.push([info,"?"].join(" = "))
+					key.push([info,"?"].join(" = "));
 					value.push(userDuty[info]);
 				}	
 			}
@@ -279,20 +278,91 @@ var dbController = function() {
 	}
 	
 	// tradeRecord
+	/*
+	{
+		trID,
+		did,
+		seller,
+		buyer,
+		money,
+		status
+	}
+	*/
+	this.addTimestamp = function(obj, key){
+		let date = new Date();
+		let currentTime = utils.getLocalDate(date) + " " + utils.getLocalTime(date);
+		obj[key] = currentTime;
+	}
+	
 	this.insertTradeRecord = function(record, callback){
-		
+		let key = [];
+		let value = [];
+		this.addTimestamp(record, "modifyTime");
+		for(var info in record){
+			key.push(info);
+			value.push(record[info]);
+		}
+		let sql = `insert into tradeRecord(${key.join(",")}) values(${key.fill('?').join(",")});`;
+		console.log(sql);
+		database.dataBaseControl(sql, value, callback);
 	}
 	
 	this.updateTradeRecord = function(record, callback){
-		
+		let key = [];
+		let value = [];
+		if(record["trID"] && (record["money"] || record["status"])){
+			this.addTimestamp(record, "modifyTime");
+			for(var info in record){
+				if(info != "trID"){
+					key.push([info,"?"].join(" = "));
+					value.push(record[info]);
+				}	
+			}
+			console.log(key, value);
+			let sql = `update tradeRecord set ${key.join(",")} where trID = ?;`;
+			console.log(sql);
+			value.push(record["trID"]);
+			database.dataBaseControl(sql, value, callback);
+		}
+		else{
+			callback(null);
+		}
 	}
 	
 	this.searchTradeRecord = function(record, callback){
-		
+		if(record["trID"] || (record["did"] && record["seller"] && record["buyer"])){
+			let key = [];
+			let value = [];
+			if(!record["type"] || typeof(record["type"]) != "string"){
+				record["type"] = "and";
+			}
+			for(var info in record){
+				if(info != "type"){
+					key.push([info, "?"].join(" = "));
+					value.push(record[info]);
+				}
+			}
+			let searchContent = key.join(" " + record["type"] + " ");
+			let sql = `select * from tradeRecord where ${searchContent};`;
+			console.log(sql);
+			database.dataBaseControl(sql, value, callback);
+		}
+		else{
+			callback(null);
+		}
 	}
 	
 	this.deleteTradeRecord = function(record, callback){
-		
+		let value = [];
+		if(record["trID"]){
+			let sql = `delete from tradeRecord where trID = ?;`;
+			console.log(sql);
+			value.push(record["trID"]);
+			database.dataBaseControl(sql, value, callback);
+		}
+		else{
+			callback(null);
+		}
 	}
 };
 
