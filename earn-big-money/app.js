@@ -12,6 +12,7 @@ var app = express();
 // routers define
 var index = require('./routes/index');
 var users = require('./routes/users');
+var test = require('./routes/test');
 
 // view engine setup
 //app.set('views', path.join(__dirname, 'views'));
@@ -44,8 +45,11 @@ app.use(function(req, res, next) {
   next();
 });
 
+// 生产环境路径
 app.use('/index', index);
 app.use('/users', users);
+// 测试环境路径
+app.use('/test', test);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
