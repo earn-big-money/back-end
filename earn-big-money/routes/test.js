@@ -7,6 +7,26 @@ router.get('/', function(req, res, next) {
 	res.send({title: 'test'});
 });
 
+router.get('/testDBapi', function(req, res, next) {
+	let strc = db.getSQLObject();
+	let query = ["update", "select", "delete", "insert"];
+	for(var i = 0; i < 4; i++){
+		strc["query"] = query[i];
+		strc["tables"] = "userInfo, hello";
+		strc["data"] = {
+			"test0" : "aaa",
+			"test1" : "bbb"
+		};
+		strc["where"]["condition"] = ["aaa = '1'","ccc = 2"];
+		strc["options"] = {
+			"group by" : "ggg",
+			"order by" : "kkk"
+		}
+		db._structureAnalysis(strc);
+	}
+	res.send({title: 'test'});
+});
+
 router.get('/testDB_TR_insert', function(req, res, next) {
 	new Promise((resolved, rejected) => {
 		db.insertTradeRecord({

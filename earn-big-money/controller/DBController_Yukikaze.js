@@ -3,15 +3,96 @@ var utils = require('./Utils_public');
 
 var dbController = function() {
 	
-	this.version = "1.2.0";
-	// 正确性验证，暂时无用
-	this.structureAnalysis = function(struc) {
-		
+	this.version = "2.0.0";
+	
+	this.updateLog = `
+		1. 更新通用接口函数
+		2. 设计通用数据库结构体
+	`;
+	
+	// 返回数据库结构体
+	this.getSQLObject = function(){
+		return {
+			// select/update/delete/insert
+			"query": "select",
+			// table name
+			"tables": "",
+			"data":{
+				// for select, use ("key": anything)
+				// for others, use ("key": value)
+			},
+			"where": {
+				// and / or / not / ""
+				"type": "and",
+				"condition": []
+			},
+			// options
+			"options": {
+				"group by": "",
+				"order by": ""
+			}
+		};
 	};
+	
+	this.getSQLObject_sv = function(){
+		return {
+			"sql": "",
+			"value": []
+		};
+	};
+	
+	// 解析数据库结构体
+	this._structureAnalysis = function(sqlObj) {
+		let dataKey = [], dataValue = [];
+		let optionKey = [];
+		let whereSql = "";
+		let hasWhere = false;
+		for(var key in sqlObj["data"]){
+			if(sqlObj["query"] == 'update'){
+				dataKey.push([key, "?"].join("="));
+			}
+			else{
+				dataKey.push(key);
+			}
+			dataValue.push(sqlObj["data"][key]);
+		}
+		hasWhere = sqlObj["where"]["condition"].length == 0? false : true;
+		whereSql = "where " + sqlObj["where"]["condition"].join(` ${sqlObj["where"]["type"]} `);
+		for(var key in sqlObj["options"]){
+			if(sqlObj["options"][key] && sqlObj["options"][key] != ""){
+				optionKey.push([key, sqlObj["options"][key]].join(" "));
+			}
+		}
+		
+		//console.log(hasWhere);
+		let sql = {
+			"update" : `update ${sqlObj["tables"]} set ${dataKey.join(",")} ${hasWhere? whereSql : ""};`,
+			"select" : `select ${dataKey.join(",")} from ${sqlObj["tables"]} ${hasWhere? whereSql : ""} ${optionKey.join(" ")};`,
+			"delete" : `delete from ${sqlObj["tables"]} ${hasWhere? whereSql : ""};`,
+			"insert" : `insert into ${sqlObj["tables"]} (${dataKey.join(",")}) values(${dataKey.fill('?').join(",")});`
+		}
+		
+		let result = this.getSQLObject_sv();
+		result["sql"] = sql[sqlObj["query"]];
+		result["value"] = sqlObj["query"] == "select"? [] : dataValue;
+		console.log(result);
+		return result;
+	};
+	
 	// sql是语句，args是参数，callback回调函数
-	this.generalOperation = function(sql, args, callback) {
+	this._generalOperation = function(sql, args, callback) {
 		database.dataBaseControl(sql, args, callback);
 	};
+	
+	this.ControlAPI_str = function(data, callback){
+		this._generalOperation(data["sql"], data["value"], callback);
+	};
+
+	this.ControlAPI_obj = function(data, callback){
+		sqlObj = this._structureAnalysis(data);
+		this._generalOperation(sqlObj["sql"], sqlObj["value"], callback);
+	};
+	
 	// user是一个结构体，callback是回调函数
 	/*
 		{
