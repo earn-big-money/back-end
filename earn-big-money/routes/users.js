@@ -1,16 +1,32 @@
 var express = require('express');
 var router = express.Router();
+var userSystem = require('./../controller/userSystem_public');
 
+// 创建账户
 router.post('/create', function(req, res, next) {
-	responseJson(res , 'create' );
+	userSystem.createUser(req, res, next);
 });
 
+
+// 登录
 router.post('/login', function(req, res, next) {
-	responseJson(res , 'login' );
+	userSystem.loginUser(req, res, next);
 });
 
+// 登出
 router.get('/logout', function(req, res, next) {
-	responseJson(res , 'logout' );
+	userSystem.logoutUser(req, res, next);
+});
+
+// 获取个人信息
+router.get('/user', function(req, res, next) {
+	userSystem.queryUser(req, res, next);
+});
+
+
+// 修改个人信息
+router.put('/user', function(req, res, next) {
+	userSystem.updateUser(req, res, next);
 });
 
 module.exports = router;

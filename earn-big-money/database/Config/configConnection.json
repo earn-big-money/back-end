@@ -1,0 +1,8 @@
+{
+    "host"     : "120.77.172.46",
+    "user"     : "testEBM",
+    "password" : "1234",
+    "port"     : "3306",
+    "database" : "EBM",
+    "timezone" : "08:00"
+}
