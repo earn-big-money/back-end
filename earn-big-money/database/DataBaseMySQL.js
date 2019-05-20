@@ -62,7 +62,8 @@ var database = {
 			await new Promise((resolve, reject)=>{
 				connection.query('CREATE DATABASE IF NOT EXISTS '+dbInfo.database+' character set utf8', async function(error, results, fields){
 					if(error){
-						throw error;
+						reject(error);
+						return;
 					}
 					connection = mysql.createConnection({
 						host     : dbInfo.host,
@@ -75,7 +76,8 @@ var database = {
 
 					connection.query("SET NAMES UTF8;", function(error, results, fields){
 						if(error){
-							throw error;
+							reject(error);
+							return;
 						}
 					});
 					
@@ -83,12 +85,13 @@ var database = {
 						await new Promise((resolve, reject) => {
 							connection.query(tableInfo[i].join(""), function(error, results, fields){
 								if(error){
-									console.error(error);
+									reject(error);
 									return;
 								}
 								resolve();
+								return;
 							});
-						});
+						}).catch((error) => {console.log(error);});
 					}
 					console.log("SUCCESS: create database successfully!");
 					resolve();
