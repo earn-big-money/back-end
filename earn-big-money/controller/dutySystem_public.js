@@ -274,7 +274,7 @@ var dutySystem = function() {
 								strc["where"]["condition"] = ["uid = "+req.body.id];
 								db.ControlAPI_obj(strc, (resultFromDatabase3)=>{
 									console.log(resultFromDatabase3)
-									if (resultFromDatabase2 !== null) {
+									if (resultFromDatabase3 !== null) {
 										res.send({"msg": "Success"});
 									}
 									else {
@@ -346,8 +346,22 @@ var dutySystem = function() {
 								strc["where"]["condition"] = ["did = "+req.body.did];
 								db.ControlAPI_obj(strc, (resultFromDatabase3)=>{
 									console.log(resultFromDatabase3)
-									if (resultFromDatabase2 !== null) {
-										res.send({"msg": "Success"});
+									if (resultFromDatabase3 !== null) {
+										strc["tables"] = "userInfo";
+										strc["query"] = 'update';
+										strc["data"] = {
+											"umoney": resultFromDatabase[0].umoney + resultFromDatabase1[0].dmoney*resultFromDatabase1[0].daccepters
+										};//传入一个结构体
+										strc["where"]["condition"] = ["uid = "+req.body.id];
+										db.ControlAPI_obj(strc, (resultFromDatabase4)=>{
+											console.log(resultFromDatabase4)
+											if (resultFromDatabase4 !== null) {
+												res.send({"msg": "Success"});
+											}
+											else {
+												res.send({"msg": "Failed in deleting a duty."});
+											}
+										});//回调函数，
 									}
 									else {
 										res.send({"msg": "Failed in deleting a duty."});
@@ -355,7 +369,7 @@ var dutySystem = function() {
 								});//回调函数，
 							}
 							else {
-								res.send({"msg": "Failed indeleting a duty."});
+								res.send({"msg": "Failed in deleting a duty."});
 							}
 						});//回调函数，
 					}
