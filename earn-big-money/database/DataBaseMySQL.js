@@ -105,7 +105,8 @@ var database = {
     },
 	
     dataBaseControl: function(sql, args, callback){
-        if(args == null){
+        if(args == null || args.length == 0){
+            console.log(sql)
             connection.query(sql, function(error, results, fields){
                 if(error){
                     console.error(error);
@@ -122,6 +123,8 @@ var database = {
                     callback(null);
                     return;
                 }
+                // console.log(results)
+                // console.log(callback)
                 callback(results);
             });
         }
