@@ -1,29 +1,29 @@
 var express = require('express');
 var router = express.Router();
-
+var dutySystem = require('./../controller/dutySystem_public');
 // 登录用户创建一个任务
 router.post('/create', function(req, res, next) {
-	res.send({msg: 'create'});
+	dutySystem.createDuty(req, res, next);
 });
 
 // 登录用户接受一个任务
 router.post('/take', function(req, res, next) {
-	res.send({msg: 'take'});
+	dutySystem.acceptDuty(req, res, next);
 });
 
 // 通过任务ID获取一个任务信息
-router.get('/duty/:did', function(req, res, next) {
-	res.send({msg : req.params.did});
+router.get('/duty', function(req, res, next) {
+	dutySystem.queryDuty(req, res, next);
 });
 
 // 修改任务信息
-router.put('/duty/:did', function(req, res, next) {
-	res.send({msg : req.params.did});
+router.put('/duty', function(req, res, next) {
+	dutySystem.updateDuty(req, res, next);
 });
 
 // 删除任务
-router.delete('/duty/:did', function(req, res, next) {
-	res.send({msg : req.params.did});
+router.delete('/duty', function(req, res, next) {
+	dutySystem.deleteDuty(req, res, next);
 });
 
 module.exports = router;
