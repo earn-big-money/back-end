@@ -1,4 +1,4 @@
-var db = require('./DBController_Yukikaze');
+var db = require('./DBController_public');
 
 var userSystem = function() {
 	

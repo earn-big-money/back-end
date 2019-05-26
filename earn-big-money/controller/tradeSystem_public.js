@@ -1,4 +1,4 @@
-var db = require('./DBController_Yukikaze');
+var db = require('./DBController_public');
 
 var tradeSystem = function() {
 	this.version = "1.0.0";

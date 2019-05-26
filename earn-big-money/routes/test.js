@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var db = require('./../controller/DBController_Yukikaze');
+var db = require('./../controller/DBController_public');
 
 router.get('/', function(req, res, next) {
 	res.send({title: 'test'});
