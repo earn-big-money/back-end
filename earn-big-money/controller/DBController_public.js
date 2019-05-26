@@ -10,6 +10,11 @@ var dbController = function() {
 		2. 设计通用数据库结构体
 	`;
 	
+	// 字段类型转换
+	this.typeTransform = function(data){
+		return (data).constructior === "String"? "\'" + data + "\'" : data;
+	};
+	
 	// 返回数据库结构体
 	this.getSQLObject = function(){
 		return {
