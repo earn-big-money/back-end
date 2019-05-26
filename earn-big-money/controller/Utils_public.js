@@ -29,3 +29,9 @@ module.exports.getLocalDateAndTime = function(){
 	var date = new Date();
     return date.toLocaleString('chinese', { hour12: false });
 };
+
+// 获取毫秒数
+module.exports.getMilliseconds = function(){
+	var date = new Date();
+	return date.valueOf();
+}
