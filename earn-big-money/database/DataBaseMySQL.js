@@ -1,21 +1,13 @@
 var mysql = require('mysql');
 var fs = require('fs');
 
-/* database
-var dbInfo = {
-    host: "localhost",
-    user: "root",
-    password: "1234",
-    port: "3306",
-    database: "projectdb",
-    timezone: "08:00"
-}
-*/
 var configConnectionFile = "./database/Config/configConnection.json";
-var dbInfo = JSON.parse(fs.readFileSync(configConnectionFile));
+var dbInfoMode = JSON.parse(fs.readFileSync(configConnectionFile));
 var configTableFile = "./database/Config/configTable.json";
 var {tableInfo} = JSON.parse(fs.readFileSync(configTableFile));
 var connection = undefined;
+
+var dbInfo = dbInfoMode[dbInfoMode["default"]];
 
 function handleDisconnect(connection) {
   connection.on('error', function(err) {

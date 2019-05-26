@@ -1,8 +1,21 @@
 {
-    "host"     : "120.77.172.46",
-    "user"     : "testEBM",
-    "password" : "1234",
-    "port"     : "3306",
-    "database" : "EBM",
-    "timezone" : "08:00"
+	"default" : "online",
+	
+	"local": {
+		"host"     : "localhost",
+		"user"     : "root",
+		"password" : "1234",
+		"port"     : "3306",
+		"database" : "EBM",
+		"timezone" : "08:00"
+	},
+	
+	"online": {
+		"host"     : "120.77.172.46",
+		"user"     : "testEBM",
+		"password" : "1234",
+		"port"     : "3306",
+		"database" : "EBM",
+		"timezone" : "08:00"
+	}
 }
