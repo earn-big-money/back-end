@@ -1,4 +1,5 @@
 var db = require('./DBController_public');
+var utils = require('./Utils_public')
 
 var dutySystem = function() {
 	this.version = "1.0.0";
@@ -28,7 +29,7 @@ var dutySystem = function() {
 					strc["query"] = 'insert';
 					strc["tables"] = "duty";
 					strc["data"] = {
-						"did": req.body.did,
+						"did": (req.body.id).toString() + "_" + utils.getMilliseconds().toString(),
 						"dtitle": req.body.title,
 						"dsponsor": req.body.id,
 						"daccepters": req.body.accepters,
