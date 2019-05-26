@@ -15,7 +15,6 @@ var userSystem = function() {
 		strc["query"] = 'insert';
 		strc["tables"] = "userInfo";
 		strc["data"] = {
-			"uid": req.body.id,
 			"uname": req.body.username,
 			"upassword": req.body.password,
 			"uphone": req.body.phone,
@@ -41,12 +40,15 @@ var userSystem = function() {
 		strc["query"] = 'select';
 		strc["tables"] = "userInfo";
 		strc["data"] = {
-			"uid": req.body.id,
-			"uname": req.body.username,
-			"upassword": req.body.password
+			"uid": 0,
+			"upassword": 0
 		};
-		strc["where"]["condition"] = ["uid = "+req.body.id];
-		// console.log("uid = "+req.body.id)
+		strc["where"]["condition"] = [
+			"uname  = " + db.typeTransform(req.body.id),
+			"uemail = " + db.typeTransform(req.body.id),
+			"uphone = " + db.typeTransform(req.body.id)
+		];
+		strc["where"]["type"] = "or";
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 			console.log(resultFromDatabase[0]); // 取下标为0即可
 			if (resultFromDatabase[0] == undefined || 
@@ -57,7 +59,12 @@ var userSystem = function() {
 			else {
 				req.session.regenerate((err) => {
 					req.session.user = resultFromDatabase[0];
-					res.send({"msg" : "Success"});
+					res.send({
+						"msg" : "Success", 
+						"data": {
+							"uid": resultFromDatabase[0].uid
+						}
+					});
 				});
 			}
 		});//回调函数，
@@ -78,15 +85,17 @@ var userSystem = function() {
 		strc["query"] = 'select';
 		strc["tables"] = "userInfo";
 		strc["data"] = {
-			"uid": req.query.id,
-			"uname": req.body.username,
-			"uphone": req.body.phone,
-			"uemail": req.body.email,
-			"utype": req.body.status,
-			"umoney": 1,
-			"ucreatetime": 2
+			"uid": 0,
+			"uname": 0,
+			"uphone": 0,
+			"uemail": 0,
+			"utype": 0,
+			"umoney": 0,
+			"ucreatetime": 0
 		};
-		strc["where"]["condition"] = ["uid = "+req.query.id];
+		strc["where"]["condition"] = [
+			"uid = " + db.typeTransform(req.query.id)
+		];
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 			console.log(resultFromDatabase[0]); // 取下标为0即可
 			if (resultFromDatabase[0] == undefined) {
@@ -119,7 +128,9 @@ var userSystem = function() {
 			strc["data"]["umoney"] = req.body.money;
 		}
 		console.log(strc["data"])
-		strc["where"]["condition"] = ["uid = "+req.body.id];
+		strc["where"]["condition"] = [
+			"uid = " + db.typeTransform(req.body.id)
+		];
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 			console.log(resultFromDatabase)
 			if (resultFromDatabase !== null && resultFromDatabase.message.charAt(15) !== '0') {
@@ -130,8 +141,10 @@ var userSystem = function() {
 			}
 		});//回调函数，
 	};
-
-
+	
+	// 用户群组查找
+	// 用户加入兴趣组
+	// 用户退出兴趣组
 };
 
 module.exports = new userSystem();
