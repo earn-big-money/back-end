@@ -112,7 +112,9 @@ var groupSystem = function() {
         stru0["where"]["condition"] = [
             'gid = ' + db.typeTransform(req.body.gid),
             'uid = ' + db.typeTransform(req.body.id),
-            "(grole = \'member\' or ((select COUNT(*) from userGroup where gid = " + db.typeTransform(req.body.gid) + 'and grole = \'leader\') >= 1 and grole = \'leader\')'
+            "(grole = \'member\' or ((select COUNT(*) from userGroup where gid = " + 
+                db.typeTransform(req.body.gid) +
+                'and grole = \'leader\') >= 1 and grole = \'leader\')'
         ];
         // 移除空的兴趣组
         stru1["query"] = "delete";
@@ -142,22 +144,20 @@ var groupSystem = function() {
     this.searchGroup = function(req, res, next) {
         let stru = db.getSQLObject();
         stru["query"] = "select";
-        stru["tables"] = "groupInfo";
+        stru["tables"] = `select (gid, grole from userGroup where uid = ${db.typeTransform(req.query.id)}) as GINFO left join groupInfo on GINFO.gid = groupInfo.gid`;
         stru["data"] = {
-            "gid": 0,
-            "gname": 0,
-            "gintroduction": 0,
-            "gsponsor": 0
+            "groupInfo.gid": 0,
+            "groupInfo.gname": 0,
+            "groupInfo.gintroduction": 0,
+            "groupInfo.gsponsor": 0,
+            "GINFO.grole": 0
         };
-        stru["where"]["condition"] = [
-            '(gid in (select gid from userGroup where uid = ' + db.typeTransform(req.query.id) + '))'
-        ];
         db.ControlAPI_obj(stru, (result) => {
             if(result != null){
-                res.json({"msg": "success", "data": result});
+                res.send({"msg": "success", "data": result});
             }
             else{
-                res.json({"msg":"Can not quit the group"});
+                res.send({"msg":"Can not quit the group"});
             }
         })
     };
