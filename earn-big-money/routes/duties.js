@@ -26,4 +26,10 @@ router.delete('/duty', function(req, res, next) {
 	dutySystem.deleteDuty(req, res, next);
 });
 
+// 筛选任务
+router.get('/screen', function(req, res, next) {
+	dutySystem.screenDuty(req, res, next);
+});
+
+
 module.exports = router;

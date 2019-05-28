@@ -10,64 +10,81 @@ var userSystem = function() {
 	
 	// 用户注册
 	this.createUser = function(req, res, next) {
-		let strc = db.getSQLObject();
-		console.log(req.body)
-		strc["query"] = 'insert';
-		strc["tables"] = "userInfo";
-		strc["data"] = {
-			"uname": req.body.username,
-			"upassword": req.body.password,
-			"uphone": req.body.phone,
-			"uemail": req.body.email,
-			"utype": req.body.status
-		};//传入一个结构体
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase); // 取下标为0即可
-			if (resultFromDatabase == undefined) {
-				res.status(400);
-				res.send({"msg" : "Invaild message"});
-			}
-			else {
-				res.send({"msg" : "Success"});
-				console.log(resultFromDatabase)
-			}
-		});//回调函数，
+		//已经登录就跳转到主页
+		if (req.session.user) {
+			res.redirect('localhost:8080/index');
+		}
+		else {
+			let strc = db.getSQLObject();
+			console.log(req.body)
+			strc["query"] = 'insert';
+			strc["tables"] = "userInfo";
+			strc["data"] = {
+				"uname": req.body.username,
+				"upassword": req.body.password,
+				"uphone": req.body.phone,
+				"uemail": req.body.email,
+				"utype": req.body.status
+			};//传入一个结构体
+			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+				console.log(resultFromDatabase); // 取下标为0即可
+				if (resultFromDatabase == undefined) {
+					res.status(400);
+					res.send({"msg" : "Invaild message"});
+				}
+				else {
+					res.send({"msg" : "Success"});
+					console.log(resultFromDatabase)
+				}
+			});//回调函数，
+		}
 	};
 	
 	// 用户登录
 	this.loginUser = function(req, res, next) {
-		let strc = db.getSQLObject();
-		strc["query"] = 'select';
-		strc["tables"] = "userInfo";
-		strc["data"] = {
-			"uid": 0,
-			"upassword": 0
-		};
-		strc["where"]["condition"] = [
-			"uname  = " + db.typeTransform(req.body.id),
-			"uemail = " + db.typeTransform(req.body.id),
-			"uphone = " + db.typeTransform(req.body.id)
-		];
-		strc["where"]["type"] = "or";
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase[0]); // 取下标为0即可
-			if (resultFromDatabase[0] == undefined || 
-			req.body.password !== resultFromDatabase[0].upassword) {
-				res.status(400);
-				res.send({"msg" : "Incorrect username or password"});
-			}
-			else {
-				req.session.regenerate((err) => {
-					req.session.user = resultFromDatabase[0];
-					res.send({
-						"msg" : "Success", 
-						"data": {
-							"uid": resultFromDatabase[0].uid
-						}
+		//已经登录就跳转到主页
+		if (req.session.user) {
+			res.redirect('localhost:8080/index');
+		}
+		else {
+			let strc = db.getSQLObject();
+			strc["query"] = 'select';
+			strc["tables"] = "userInfo";
+			strc["data"] = {
+				"uname": 0,
+				"upassword": 0,
+				"uemail": 0,
+				"uphone": 0,
+				"uid": 0
+			};
+			strc["where"]["condition"] = [
+				"uname  = " + db.typeTransform(req.body.id),
+				"uemail = " + db.typeTransform(req.body.id),
+				"uphone = " + db.typeTransform(req.body.id)
+			];
+			strc["where"]["type"] = "or";
+			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+				console.log(resultFromDatabase[0]); // 取下标为0即可
+				if (resultFromDatabase[0] == undefined || 
+				req.body.password !== resultFromDatabase[0].upassword) {
+					res.status(400);
+					res.send({"msg" : "Incorrect username or password"});
+				}
+				else {
+					req.session.regenerate((err) => {
+						//去除密码
+						delete resultFromDatabase[0].upassword;
+						req.session.user = resultFromDatabase[0];
+						res.send({
+							"msg" : "Success", 
+							"data": {
+								"uid": resultFromDatabase[0].uid
+							}
+						});
 					});
-				});
-			}
-		});//回调函数，
+				}
+			});//回调函数，
+		}
 	};
 	
 	// 用户登出
@@ -78,7 +95,7 @@ var userSystem = function() {
 		});
 	};
 	
-	// 用户查找
+	// 用户查找，感觉查找的内容可以是任意一个用户，所以没必要做登陆检测
 	this.queryUser = function(req, res, next) {
 		let strc = db.getSQLObject();
 		console.log(req.query.id)
@@ -94,8 +111,11 @@ var userSystem = function() {
 			"ucreatetime": 0
 		};
 		strc["where"]["condition"] = [
-			"uid = " + db.typeTransform(req.query.id)
+			"uname  = " + db.typeTransform(req.body.id),
+			"uemail = " + db.typeTransform(req.body.id),
+			"uphone = " + db.typeTransform(req.body.id)
 		];
+		strc["where"]["type"] = "or";
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 			console.log(resultFromDatabase[0]); // 取下标为0即可
 			if (resultFromDatabase[0] == undefined) {
@@ -109,37 +129,55 @@ var userSystem = function() {
 
 	// 用户更新
 	this.updateUser = function(req, res, next) {
-		let strc = db.getSQLObject();
-		strc["query"] = 'update';
-		strc["tables"] = "userInfo";
-		if (req.body.username != null) {
-			strc["data"]["uname"] = req.body.username;
+		if (req.session.user == null) {
+			res.redirect('localhost:8080/users/login');
 		}
-		if (req.body.phone != null) {
-			strc["data"]["uphone"] = req.body.phone;
-		}
-		if (req.body.email != null) {
-			strc["data"]["uemail"] = req.body.email;
-		}
-		if (req.body.status != null) {
-			strc["data"]["utype"] = req.body.status;
-		}
-		if (req.body.money != null) {
-			strc["data"]["umoney"] = req.body.money;
-		}
-		console.log(strc["data"])
-		strc["where"]["condition"] = [
-			"uid = " + db.typeTransform(req.body.id)
-		];
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase)
-			if (resultFromDatabase !== null && resultFromDatabase.message.charAt(15) !== '0') {
-				res.send({"msg" : "Success"})
+		else {
+			let strc = db.getSQLObject();
+			strc["query"] = 'update';
+			strc["tables"] = "userInfo";
+			if (req.body.username != null) {
+				strc["data"]["uname"] = req.body.username;
 			}
-			else {
-				res.send({"msg": "Failed in modification."});
+			if (req.body.phone != null) {
+				strc["data"]["uphone"] = req.body.phone;
 			}
-		});//回调函数，
+			if (req.body.email != null) {
+				strc["data"]["uemail"] = req.body.email;
+			}
+			if (req.body.status != null) {
+				strc["data"]["utype"] = req.body.status;
+			}
+			if (req.body.money != null) {
+				strc["data"]["umoney"] = req.body.money;
+			}
+			console.log(strc["data"])
+			strc["where"]["condition"] = [
+				"uname  = " + db.typeTransform(req.session.user.uname),
+				"uemail = " + db.typeTransform(req.session.user.uemail),
+				"uphone = " + db.typeTransform(req.session.user.uphone)
+			];
+			// strc["where"]["type"] = "or";
+			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+				console.log(resultFromDatabase)
+				if (resultFromDatabase !== null && resultFromDatabase.message.charAt(15) !== '0') {
+					//更新一下session，防止用户名电话之类的改了
+					if (req.body.username != null) {
+						req.session.user.uname = req.body.username;
+					}
+					if (req.body.phone != null) {
+						req.session.user.uphone = req.body.phone;
+					}
+					if (req.body.email != null) {
+						req.session.user.uemail = req.body.email;
+					}
+					res.send({"msg" : "Success"})
+				}
+				else {
+					res.send({"msg": "Failed in modification."});
+				}
+			});//回调函数，
+		}
 	};
 	
 	// 用户群组查找
