@@ -9,29 +9,31 @@ var dutySystem = function() {
 		// 首先判断用户是否存在，余额够不够，然后再更新事务表和用户表，事务用户表
 		tdid = ""
 		if (req.session.user == null) {
-			res.redirect('localhost:8080/users/login');
+			res.status(400);
+			res.send({
+				"msg": "Not Log in"
+			});
 		}
 		else {
 			let strc = db.getSQLObject();
 			strc["query"] = 'select';
 			strc["tables"] = "userInfo";
 			strc["data"] = {
-				"uid": req.body.id,
-				"umoney": req.body.id
+				"umoney": 0
 			};//传入一个结构体
 			strc["where"]["condition"] = [
-				"uname  = " + db.typeTransform(req.session.user.uname),
-				"uemail = " + db.typeTransform(req.session.user.uemail),
-				"uphone = " + db.typeTransform(req.session.user.uphone)
+				"uid  = " + db.typeTransform(req.session.user.uid)
 			];
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 				console.log(resultFromDatabase[0]); // 取下标为0即可
-				if (resultFromDatabase[0] == undefined) {
-					res.send({"msg": "用户不存在"})
+				if (resultFromDatabase == null) {
+					res.status(400);
+					res.send({"msg": "用户不存在"});
 				}
 				else {
 					if (resultFromDatabase[0].umoney < req.body.accepters*req.body.money) {
-						res.send({"msg":"余额不足"})
+						res.status(400);
+						res.send({"msg":"余额不足"});
 					}
 					else {
 						//更新事务信息
@@ -50,8 +52,8 @@ var dutySystem = function() {
 							"dtype": req.body.type
 						};//传入一个结构体
 						db.ControlAPI_obj(strc, (resultFromDatabase1)=>{
-							console.log(resultFromDatabase1); // 取下标为0即可
-							if (resultFromDatabase1 == undefined) {
+							//console.log(resultFromDatabase1); // 取下标为0即可
+							if (resultFromDatabase1 == null) {
 								res.status(400);
 								res.send({"msg" : "任务ID重复"});
 							}
@@ -60,10 +62,13 @@ var dutySystem = function() {
 								strc["tables"] = "userInfo";
 								strc["query"] = 'update';
 								strc["data"] = {
-									"umoney": resultFromDatabase[0].umoney - req.body.accepters*req.body.money
+									"umoney": resultFromDatabase[0].umoney - req.body.accepters * req.body.money
 								};//传入一个结构体
 								db.ControlAPI_obj(strc, (resultFromDatabase2)=>{
-									if (resultFromDatabase2 !== null) {
+									if (resultFromDatabase2 == null) {
+										res.send({"msg": "Failed in creating a duty."});
+									}
+									else {
 										//更新用户-事务表
 										strc["query"] = 'insert';
 										strc["tables"] = "userDuty";
@@ -74,16 +79,13 @@ var dutySystem = function() {
 											"type": 'sponsor'
 										};//传入一个结构体
 										db.ControlAPI_obj(strc, (resultFromDatabase3)=>{
-											if (resultFromDatabase3 !== undefined) {
-												res.send({"msg": "success."})
-											}
-											else {
+											if (resultFromDatabase3 == null) {
 												res.send({"msg": "Failed in creating a duty."});
 											}
+											else {
+												res.send({"msg": "success."});
+											}
 										});
-									}
-									else {
-										res.send({"msg": "Failed in creating a duty."});
 									}
 								});
 							}
@@ -97,7 +99,10 @@ var dutySystem = function() {
 	// 用于领取任务
 	this.acceptDuty = function(req, res, next){
 		if (req.session.user == null) {
-			res.redirect('localhost:8080/users/login');
+			res.status(400);
+			res.send({
+				"msg": "Not Log in"
+			});
 		}
 		else {
 			//首先判断用户id和事务id是否存在，以及当前是否到达了人数上限，以及用户是否参加过同类活动，然后更新事务表和用户事务表
@@ -105,24 +110,24 @@ var dutySystem = function() {
 			strc["query"] = 'select';
 			strc["tables"] = "userInfo";
 			strc["data"] = {
-				"uid": req.body.id
+				"uid": 0
 			};//传入一个结构体
-			strc["where"]["condition"] = ["uid = "+req.session.user.uid];
+			strc["where"]["condition"] = ["uid = " + req.session.user.uid];
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-				console.log(resultFromDatabase[0]); // 取下标为0即可
-				if (resultFromDatabase[0] == undefined) {
-					res.send({"msg":"用户不存在"})
+				//console.log(resultFromDatabase[0]); // 取下标为0即可
+				if (resultFromDatabase == null || resultFromDatabase.length == 0) {
+					res.send({"msg":"用户不存在"});
 				}
 				else {
 					strc["tables"] = "duty";
 					strc["data"] = {
-						"curaccepters": req.body.curaccepters,
-						"daccepters": req.body.curaccepters
+						"curaccepters": 0,
+						"daccepters": 0
 					};//传入一个结构体
-					strc["where"]["condition"] = ["did = "+db.typeTransform(req.body.did)];
+					strc["where"]["condition"] = ["did = " + db.typeTransform(req.body.did)];
 					db.ControlAPI_obj(strc, (resultFromDatabase1)=>{
-						console.log(resultFromDatabase1); // 取下标为0即可
-						if (resultFromDatabase1 == undefined) {
+						//console.log(resultFromDatabase1); // 取下标为0即可
+						if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 							res.send({"msg" : "任务ID不存在"});
 						}
 						else {
@@ -139,23 +144,23 @@ var dutySystem = function() {
 									"type": "accepter"
 								};//传入一个结构体
 								db.ControlAPI_obj(strc, (resultFromDatabase2)=>{
-									console.log(resultFromDatabase2); // 取下标为0即可
-									if (resultFromDatabase2 == undefined) {
+									//console.log(resultFromDatabase2); // 取下标为0即可
+									if (resultFromDatabase2 == null) {
 										res.send({"msg" : "任务不可重复认领"});
 									}
 									else {
-										strc["tables"] = "duty";
 										strc["query"] = 'update';
+										strc["tables"] = "duty";
 										strc["data"] = {
 											"curaccepters": resultFromDatabase1[0].curaccepters+1
 										};//传入一个结构体
-										strc["where"]["condition"] = ["did = "+db.typeTransform(req.body.did)];
+										strc["where"]["condition"] = ["did = "+ db.typeTransform(req.body.did)];
 										db.ControlAPI_obj(strc, (resultFromDatabase3)=>{
-											if (resultFromDatabase3 !== undefined) {
-												res.send({"msg": "success."})
+											if (resultFromDatabase3 == null) {
+												res.send({"msg": "Failed in taking a duty."});
 											}
 											else {
-												res.send({"msg": "Failed in taking a duty."});
+												res.send({"msg": "success."});
 											}
 										});
 									}
@@ -190,12 +195,15 @@ var dutySystem = function() {
 		};
 		strc["where"]["condition"] = ["did = "+db.typeTransform(req.query.did)];
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase[0]); // 取下标为0即可
-			if (resultFromDatabase[0] == undefined) {
+			//console.log(resultFromDatabase[0]); // 取下标为0即可
+			if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 				res.send({ "msg": "Failed in finding this duty."})
 			}
 			else {
-				res.send({"info": resultFromDatabase[0]});
+				res.send({ 
+					"msg": "success.",
+					"info": resultFromDatabase[0]
+				});
 			}
 		});//回调函数，
 	}
@@ -204,36 +212,39 @@ var dutySystem = function() {
 	this.updateDuty = function(req, res, next) {
 		//如果对money或uaccepter进行更新的话，首先看是否已经有人接受，如果有人接受的话就不能改，如果想提高价格的话，要看余额够不够
 		if (req.session.user == null) {
-			res.redirect('localhost:8080/users/login');
+			res.status(400);
+			res.send({
+				"msg": "Not Log in"
+			});
 		}
 		else {
 			let strc = db.getSQLObject();
 			strc["query"] = 'select';
 			strc["tables"] = "userInfo";
 			strc["data"] = {
-				"uid": req.body.id,
-				"umoney": req.body.id
+				"uid": 0,
+				"umoney": 0
 			};//传入一个结构体
 			strc["where"]["condition"] = ["uid = "+req.session.user.uid];
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 				console.log(resultFromDatabase[0]); // 取下标为0即可
-				if (resultFromDatabase[0] == undefined) {
+				if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 					res.send({"msg": "用户不存在"})
 				}
 				else {
 					strc["query"] = 'select';
 					strc["tables"] = "duty";
 					strc["data"] = {
-						"dsponsor": req.body.id,
-						"dmoney": req.body.id,
-						"daccepters": req.body.id,
-						"curaccepters": req.body.id
+						"dsponsor": 0,
+						"dmoney": 0,
+						"daccepters": 0,
+						"curaccepters": 0
 					};//传入一个结构体
 					strc["where"]["condition"] = ["did = "+db.typeTransform(req.body.did)];
 					db.ControlAPI_obj(strc, (resultFromDatabase1)=>{
 						newmoney = null
 						newaccepter = null
-						if (resultFromDatabase1[0] !== null){
+						if (!(resultFromDatabase == null || resultFromDatabase.length == 0)){
 							if (req.body.money !== null) {
 								newmoney = req.body.money;
 							}
@@ -242,7 +253,7 @@ var dutySystem = function() {
 							}
 						}
 						console.log(resultFromDatabase1)
-						if (resultFromDatabase1[0] == null) {
+						if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 							res.send({"msg": "事务id不存在"});
 						}
 						else if (resultFromDatabase1[0].dsponsor != req.session.user.uid) {
@@ -330,7 +341,7 @@ var dutySystem = function() {
 			strc["where"]["condition"] = ["uid = "+req.session.user.uid];
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 				console.log(resultFromDatabase[0]); // 取下标为0即可
-				if (resultFromDatabase[0] == undefined) {
+				if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 					res.send({"msg": "用户不存在"})
 				}
 				else {
