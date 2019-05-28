@@ -403,7 +403,41 @@ var dutySystem = function() {
 	}
 
 	this.screenDuty = function(req, res, next) {
-		
+		let strc = db.getSQLObject();
+		selects = req.query.select.split(',');
+		sorts = req.query.sortBy.split(',');
+		strc["query"] = 'select';
+		strc["tables"] = "duty";
+		strc["data"] = {
+			"did": 0,
+			"dtitle": 0,
+			"dsponsor": 0,
+			"daccepters": 0,
+			"curaccepters": 0,
+			"dmodifyTime": 0,
+			"dcontent": 0,
+			"dstartTime": 0,
+			"dendTime": 0,
+			"dmoney": 0,
+			"dtype": 0
+		};
+		conditions = []
+		for (var i  = 0; i < selects.length; i = i+2) {
+			conditions.push("d"+selects[i]+" = "+db.typeTransform(selects[i+1]));
+		}
+		strc["where"]["condition"] = conditions;
+		strc["options"]["limit"] = (req.query.pageNumber-1)*req.query.countPerPage+","+req.query.countPerPage;
+		// strc["options"]["offset"] = (req.query.pageNumber-1)*req.query.countPerPage;
+		strc["options"]["order by"] = sorts[1]+" "+sorts[3];
+		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+			console.log(resultFromDatabase); // 取下标为0即可
+			if (resultFromDatabase == undefined) {
+				res.send({ "msg": "Failed in screening.."})
+			}
+			else {
+				res.send({"count": resultFromDatabase.length, "content": resultFromDatabase});
+			}
+		});//回调函数，
 	}
 }
 
