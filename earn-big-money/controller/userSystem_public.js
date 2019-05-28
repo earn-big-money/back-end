@@ -12,7 +12,12 @@ var userSystem = function() {
 	this.createUser = function(req, res, next) {
 		//已经登录就跳转到主页
 		if (req.session.user) {
-			res.redirect('localhost:8080/index');
+			res.send({
+				"msg" : "Success", 
+				"data": {
+					"uid": req.session.user.uid
+				}
+			});
 		}
 		else {
 			let strc = db.getSQLObject();
@@ -27,14 +32,42 @@ var userSystem = function() {
 				"utype": req.body.status
 			};//传入一个结构体
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-				console.log(resultFromDatabase); // 取下标为0即可
-				if (resultFromDatabase == undefined) {
+				//console.log(resultFromDatabase); // 取下标为0即可
+				if (resultFromDatabase == null) {
 					res.status(400);
-					res.send({"msg" : "Invaild message"});
+					res.send({"msg" : "Can not create a user"});
 				}
 				else {
-					res.send({"msg" : "Success"});
-					console.log(resultFromDatabase)
+					let strc0 = db.getSQLObject();
+					strc0["query"] = 'select';
+					strc0["tables"] = "userInfo";
+					strc0["data"] = {
+						"uname": 0,
+						"uemail": 0,
+						"uphone": 0,
+						"uid": 0
+					};
+					strc0["where"]["condition"] = [
+						`uname = ${db.typeTransform(req.body.username)}`
+					];
+					db.ControlAPI_obj(strc0, (resultFromDatabase1)=>{
+						if (resultFromDatabase1 == null) {
+							res.status(400);
+							res.send({"msg" : "Can not create a user"});
+						}
+						else {
+							req.session.user = resultFromDatabase[0];
+							req.session.regenerate((err) => {
+								//去除密码
+								res.send({
+									"msg" : "Success", 
+									"data": {
+										"uid": resultFromDatabase[0].uid
+									}
+								});
+							});
+						}
+					});
 				}
 			});//回调函数，
 		}
@@ -44,7 +77,12 @@ var userSystem = function() {
 	this.loginUser = function(req, res, next) {
 		//已经登录就跳转到主页
 		if (req.session.user) {
-			res.redirect('localhost:8080/index');
+			res.send({
+				"msg" : "Success", 
+				"data": {
+					"uid": req.session.user.uid
+				}
+			});
 		}
 		else {
 			let strc = db.getSQLObject();
@@ -52,29 +90,25 @@ var userSystem = function() {
 			strc["tables"] = "userInfo";
 			strc["data"] = {
 				"uname": 0,
-				"upassword": 0,
 				"uemail": 0,
 				"uphone": 0,
 				"uid": 0
 			};
 			strc["where"]["condition"] = [
-				"uname  = " + db.typeTransform(req.body.id),
-				"uemail = " + db.typeTransform(req.body.id),
-				"uphone = " + db.typeTransform(req.body.id)
+				`(uname = ${db.typeTransform(req.body.username)} or
+				 uemail = ${db.typeTransform(req.body.username)} or
+				 uphone = ${db.typeTransform(req.body.username)})`,
+				"upassword = " + db.typeTransform(req.body.password)
 			];
-			strc["where"]["type"] = "or";
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-				console.log(resultFromDatabase[0]); // 取下标为0即可
-				if (resultFromDatabase[0] == undefined || 
-				req.body.password !== resultFromDatabase[0].upassword) {
+				if (resultFromDatabase == null) {
 					res.status(400);
 					res.send({"msg" : "Incorrect username or password"});
 				}
 				else {
+					//去除密码
+					req.session.user = resultFromDatabase[0];
 					req.session.regenerate((err) => {
-						//去除密码
-						delete resultFromDatabase[0].upassword;
-						req.session.user = resultFromDatabase[0];
 						res.send({
 							"msg" : "Success", 
 							"data": {
@@ -98,7 +132,7 @@ var userSystem = function() {
 	// 用户查找，感觉查找的内容可以是任意一个用户，所以没必要做登陆检测
 	this.queryUser = function(req, res, next) {
 		let strc = db.getSQLObject();
-		console.log(req.query.id)
+		//console.log(req.query.id)
 		strc["query"] = 'select';
 		strc["tables"] = "userInfo";
 		strc["data"] = {
@@ -111,14 +145,13 @@ var userSystem = function() {
 			"ucreatetime": 0
 		};
 		strc["where"]["condition"] = [
-			"uname  = " + db.typeTransform(req.body.id),
-			"uemail = " + db.typeTransform(req.body.id),
-			"uphone = " + db.typeTransform(req.body.id)
+			"uname  = " + db.typeTransform(req.query.username),
+			"uemail = " + db.typeTransform(req.query.username),
+			"uphone = " + db.typeTransform(req.query.username)
 		];
 		strc["where"]["type"] = "or";
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase[0]); // 取下标为0即可
-			if (resultFromDatabase[0] == undefined) {
+			if (resultFromDatabase == null) {
 				res.send({"msg":"用户不存在"})
 			}
 			else {
@@ -129,8 +162,13 @@ var userSystem = function() {
 
 	// 用户更新
 	this.updateUser = function(req, res, next) {
-		if (req.session.user == null) {
-			res.redirect('localhost:8080/users/login');
+		if (req.session.user) {
+			res.send({
+				"msg" : "Success", 
+				"data": {
+					"uid": req.session.user.uid
+				}
+			});
 		}
 		else {
 			let strc = db.getSQLObject();
@@ -160,7 +198,7 @@ var userSystem = function() {
 			// strc["where"]["type"] = "or";
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
 				console.log(resultFromDatabase)
-				if (resultFromDatabase !== null && resultFromDatabase.message.charAt(15) !== '0') {
+				if (resultFromDatabase != null && resultFromDatabase.message.charAt(15) !== '0') {
 					//更新一下session，防止用户名电话之类的改了
 					if (req.body.username != null) {
 						req.session.user.uname = req.body.username;
