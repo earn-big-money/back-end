@@ -3,6 +3,11 @@ var db = require('./DBController_public');
 var tradeSystem = function() {
 	this.version = "1.0.0";
 
+	// 余额查询
+	this.checkBalanceTrade = function(args, callback) {
+		
+	}
+
 	// 用于创建交易
 	this.createTrade = function(args, callback) {
 		

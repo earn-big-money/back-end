@@ -13,7 +13,7 @@ var app = express();
 var index = require('./routes/index');
 var users = require('./routes/users');
 var duties = require('./routes/duties');
-var transactions = require('./routes/transactions');
+var trades = require('./routes/trades');
 var test = require('./routes/test');
 
 // view engine setup
@@ -51,7 +51,7 @@ app.use(function(req, res, next) {
 app.use('/index', index);
 app.use('/users', users);
 app.use('/duties', duties);
-app.use('/transactions', transactions);
+app.use('/trades', trades);
 // 测试环境路径
 app.use('/test', test);
 
