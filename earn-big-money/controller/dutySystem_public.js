@@ -328,7 +328,10 @@ var dutySystem = function() {
 	this.deleteDuty = function(req, res, next) {
 		//首先看是否已经有人接受，如果有人接受的话就不能删，然后还要更新回去价格，从userduty里面删对应的表
 		if (req.session.user == null) {
-			res.redirect('localhost:8080/users/login');
+			res.status(400);
+			res.send({
+				"msg": "Not Log in"
+			});
 		}
 		else {
 			let strc = db.getSQLObject();

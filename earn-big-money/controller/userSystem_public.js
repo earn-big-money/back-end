@@ -13,7 +13,7 @@ var userSystem = function() {
 		//已经登录就跳转到主页
 		if (req.session.user) {
 			res.send({
-				"msg" : "Success", 
+				"msg" : "Already log in", 
 				"data": {
 					"uid": req.session.user.uid
 				}
@@ -78,7 +78,7 @@ var userSystem = function() {
 		//已经登录就跳转到主页
 		if (req.session.user) {
 			res.send({
-				"msg" : "Success", 
+				"msg" : "Already log in", 
 				"data": {
 					"uid": req.session.user.uid
 				}
@@ -163,14 +163,6 @@ var userSystem = function() {
 	// 用户更新
 	this.updateUser = function(req, res, next) {
 		if (req.session.user) {
-			res.send({
-				"msg" : "Success", 
-				"data": {
-					"uid": req.session.user.uid
-				}
-			});
-		}
-		else {
 			let strc = db.getSQLObject();
 			strc["query"] = 'update';
 			strc["tables"] = "userInfo";
@@ -215,6 +207,14 @@ var userSystem = function() {
 					res.send({"msg": "Failed in modification."});
 				}
 			});//回调函数，
+		}
+		else {
+			res.send({
+				"msg" : "Not log in", 
+				"data": {
+					"uid": req.session.user.uid
+				}
+			});
 		}
 	};
 	
