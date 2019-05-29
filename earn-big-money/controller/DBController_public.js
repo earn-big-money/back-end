@@ -12,12 +12,7 @@ var dbController = function() {
 	
 	// 字段类型转换
 	this.typeTransform = function(data){
-		if (data == null || data == undefined) {
-			return data;
-		}
-		else {
-			return typeof(data) === "string"? "\'" + data + "\'" : data;
-		}
+		return typeof(data) === "string"? "\'" + data + "\'" : data;
 	};
 	
 	// 返回数据库结构体

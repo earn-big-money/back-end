@@ -10,78 +10,39 @@ var userSystem = function() {
 	
 	// 用户注册
 	this.createUser = function(req, res, next) {
-		//已经登录就跳转到主页
-		if (req.session.user) {
-			res.send({
-				"msg" : "Already log in", 
-				"data": {
-					"uid": req.session.user.uid
-				}
-			});
-		}
-		else {
-			let strc = db.getSQLObject();
-			console.log(req.body)
-			strc["query"] = 'insert';
-			strc["tables"] = "userInfo";
-			strc["data"] = {
-				"uname": req.body.username,
-				"upassword": req.body.password,
-				"uphone": req.body.phone,
-				"uemail": req.body.email,
-				"utype": req.body.status
-			};//传入一个结构体
-			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-				//console.log(resultFromDatabase); // 取下标为0即可
-				if (resultFromDatabase == null) {
-					res.status(400);
-					res.send({"msg" : "Can not create a user"});
-				}
-				else {
-					let strc0 = db.getSQLObject();
-					strc0["query"] = 'select';
-					strc0["tables"] = "userInfo";
-					strc0["data"] = {
-						"uname": 0,
-						"uemail": 0,
-						"uphone": 0,
-						"uid": 0
-					};
-					strc0["where"]["condition"] = [
-						`uname = ${db.typeTransform(req.body.username)}`
-					];
-					db.ControlAPI_obj(strc0, (resultFromDatabase1)=>{
-						if (resultFromDatabase1 == null) {
-							res.status(400);
-							res.send({"msg" : "Can not create a user"});
-						}
-						else {
-							req.session.user = resultFromDatabase[0];
-							req.session.regenerate((err) => {
-								//去除密码
-								res.send({
-									"msg" : "Success", 
-									"data": {
-										"uid": resultFromDatabase[0].uid
-									}
-								});
-							});
-						}
-					});
-				}
-			});//回调函数，
-		}
+		let strc = db.getSQLObject();
+		console.log(req.body)
+		strc["query"] = 'insert';
+		strc["tables"] = "userInfo";
+		strc["data"] = {
+			"uid": req.body.id,
+			"uname": req.body.username,
+			"upassword": req.body.password,
+			"uphone": req.body.phone,
+			"uemail": req.body.email,
+			"utype": req.body.status
+		};//传入一个结构体
+		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+			//console.log(resultFromDatabase); // 取下标为0即可
+			if (resultFromDatabase == null) {
+				res.status(400);
+				res.send({"msg" : "Can not create a user"});
+			}
+			else {
+				res.send({
+					"msg" : "Success"
+				});
+			}
+		});//回调函数，	
 	};
 	
 	// 用户登录
 	this.loginUser = function(req, res, next) {
 		//已经登录就跳转到主页
 		if (req.session.user) {
+			res.status(400);
 			res.send({
-				"msg" : "Already log in", 
-				"data": {
-					"uid": req.session.user.uid
-				}
+				"msg" : "[" + req.session.user.uid + "] already log in"
 			});
 		}
 		else {
@@ -95,25 +56,22 @@ var userSystem = function() {
 				"uid": 0
 			};
 			strc["where"]["condition"] = [
-				`(uname = ${db.typeTransform(req.body.username)} or
-				 uemail = ${db.typeTransform(req.body.username)} or
-				 uphone = ${db.typeTransform(req.body.username)})`,
+				`(uid = ${db.typeTransform(req.body.id)} or
+				 uemail = ${db.typeTransform(req.body.id)} or
+				 uphone = ${db.typeTransform(req.body.id)})`,
 				"upassword = " + db.typeTransform(req.body.password)
 			];
 			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-				if (resultFromDatabase == null) {
+				if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 					res.status(400);
-					res.send({"msg" : "Incorrect username or password"});
+					res.send({"msg" : "Incorrect id or password"});
 				}
 				else {
 					//去除密码
-					req.session.user = resultFromDatabase[0];
 					req.session.regenerate((err) => {
+						req.session.user = resultFromDatabase[0];
 						res.send({
-							"msg" : "Success", 
-							"data": {
-								"uid": resultFromDatabase[0].uid
-							}
+							"msg" : "Success"
 						});
 					});
 				}
@@ -145,9 +103,9 @@ var userSystem = function() {
 			"ucreatetime": 0
 		};
 		strc["where"]["condition"] = [
-			"uname  = " + db.typeTransform(req.query.username),
-			"uemail = " + db.typeTransform(req.query.username),
-			"uphone = " + db.typeTransform(req.query.username)
+			"uid    = " + db.typeTransform(req.query.id),
+			"uemail = " + db.typeTransform(req.query.id),
+			"uphone = " + db.typeTransform(req.query.id)
 		];
 		strc["where"]["type"] = "or";
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
@@ -166,8 +124,8 @@ var userSystem = function() {
 			let strc = db.getSQLObject();
 			strc["query"] = 'update';
 			strc["tables"] = "userInfo";
-			if (req.body.username != null) {
-				strc["data"]["uname"] = req.body.username;
+			if (req.body.id != null) {
+				strc["data"]["uname"] = req.body.id;
 			}
 			if (req.body.phone != null) {
 				strc["data"]["uphone"] = req.body.phone;
@@ -183,7 +141,7 @@ var userSystem = function() {
 			}
 			console.log(strc["data"])
 			strc["where"]["condition"] = [
-				"uname  = " + db.typeTransform(req.session.user.uname),
+				"uid  = " + db.typeTransform(req.session.user.uid),
 				"uemail = " + db.typeTransform(req.session.user.uemail),
 				"uphone = " + db.typeTransform(req.session.user.uphone)
 			];
@@ -192,8 +150,8 @@ var userSystem = function() {
 				console.log(resultFromDatabase)
 				if (resultFromDatabase != null && resultFromDatabase.message.charAt(15) !== '0') {
 					//更新一下session，防止用户名电话之类的改了
-					if (req.body.username != null) {
-						req.session.user.uname = req.body.username;
+					if (req.body.id != null) {
+						req.session.user.uid = req.body.id;
 					}
 					if (req.body.phone != null) {
 						req.session.user.uphone = req.body.phone;
