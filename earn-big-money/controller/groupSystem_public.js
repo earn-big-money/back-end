@@ -12,7 +12,7 @@ var groupSystem = function() {
         stru0["query"] = "insert";
         stru0["tables"] = "groupInfo";
         stru0["data"] = {
-            'gname' : req.body.gname,
+            'gname' : req.body.name,
             'gintroduction' : req.body.introduction,
             'gsponsor' : req.body.id
         };
@@ -23,7 +23,7 @@ var groupSystem = function() {
             'gid': 0
         };
         stru1["where"]["condition"] = [
-            'gname = ' + db.typeTransform(req.body.gname)
+            'gname = ' + db.typeTransform(req.body.name)
         ];
         // 添加组员信息
         stru2["query"] = "insert";
@@ -85,12 +85,12 @@ var groupSystem = function() {
         stru["query"] = "update";
         stru["tables"] = "groupInfo";
         stru["data"] = {
-            'gname' : req.body.gname,
+            'gname' : req.body.name,
             'gintroduction' : req.body.introduction
         };
         stru["where"]["condition"] = [
-            'gid =' + db.typeTransform(req.body.gid),
-            '\'leader\' = (select grole from userGroup where gid = ' + db.typeTransform(req.body.gid) + 'and uid = ' + db.typeTransform(req.body.uid) + ')'
+            'gid = ' + db.typeTransform(req.body.gid),
+            '\'leader\' = (select grole from userGroup where gid = ' + db.typeTransform(req.body.gid) + ' and uid = ' + db.typeTransform(req.body.id) + ')'
         ];
         db.ControlAPI_obj(stru, (result) => {
             if(result == null){
@@ -111,10 +111,7 @@ var groupSystem = function() {
         stru0["tables"] = "userGroup";
         stru0["where"]["condition"] = [
             'gid = ' + db.typeTransform(req.body.gid),
-            'uid = ' + db.typeTransform(req.body.id),
-            "(grole = \'member\' or ((select COUNT(*) from userGroup where gid = " + 
-                db.typeTransform(req.body.gid) +
-                'and grole = \'leader\') >= 1 and grole = \'leader\')'
+            'uid = ' + db.typeTransform(req.body.id)
         ];
         // 移除空的兴趣组
         stru1["query"] = "delete";
@@ -144,7 +141,7 @@ var groupSystem = function() {
     this.searchGroup = function(req, res, next) {
         let stru = db.getSQLObject();
         stru["query"] = "select";
-        stru["tables"] = `select (gid, grole from userGroup where uid = ${db.typeTransform(req.query.id)}) as GINFO left join groupInfo on GINFO.gid = groupInfo.gid`;
+        stru["tables"] = `(select gid, grole from userGroup where uid = ${db.typeTransform(req.query.id)}) as GINFO left join groupInfo on GINFO.gid = groupInfo.gid`;
         stru["data"] = {
             "groupInfo.gid": 0,
             "groupInfo.gname": 0,

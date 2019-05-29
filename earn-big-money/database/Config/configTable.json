@@ -51,7 +51,7 @@
 		") engine=InnoDB;"],
 		["create table if not exists groupInfo(",
 			"gid int(8) auto_increment,",
-			"gname nvarchar(30),",
+			"gname nvarchar(30) unique,",
 			"gintroduction varchar(200),",
 			"gsponsor nvarchar(8),",
 			"gcreateTime TIMESTAMP DEFAULT NOW(),",
@@ -64,6 +64,7 @@
 			"grole nvarchar(10) default 'member' check(utype='leader' or utype='member'),",
 			"index (gid),",
 			"index (uid),",
+			"primary key (gid, uid),",
 			"foreign key (gid) REFERENCES groupInfo(gid) ON UPDATE CASCADE ON DELETE CASCADE,",
 			"foreign key (uid) REFERENCES userInfo(uid) ON UPDATE CASCADE ON DELETE CASCADE",
 		") engine=InnoDB;"]
