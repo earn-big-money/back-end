@@ -41,6 +41,8 @@ router.get('/many', async function(req, res, next) {
 	res.send({title: value});
 });
 
+var obj = {};
+
 router.post('/testDB_create', test_module.createGroup);
 
 router.post('/testDB_update', test_module.joinGroup);
@@ -50,5 +52,20 @@ router.post('/testDB_update0', test_module.updateGroup);
 router.get('/testDB_select', test_module.searchGroup);
 
 router.post('/testDB_delete', test_module.quitGroup);
+
+router.post('/createSurvey', function(req, res, next){
+	obj = req.body;
+	console.log(req.body);
+	res.send(req.body);
+});
+
+router.get('/showSurvey', function(req, res, next){
+	res.json(obj);
+});
+
+router.post('/submitSurvey', function(req, res, next){
+	console.log(req.body);
+	res.send(req.body);
+});
 
 module.exports = router;
