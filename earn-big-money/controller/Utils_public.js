@@ -2,6 +2,17 @@
 此文件用于放置公共函数
 */
 
+// 登录验证中间件
+module.exports.loginCheck = function(req, res, next){
+	if (req.session.user == null) {
+        res.status(400);
+        res.send({'msg':'Please login first.'});
+    }
+    else{
+        next();
+    }
+}
+
 // yyyy-M-dd : 数据库统一使用此格式
 module.exports.getLocalDate = function(date){
     var seperator1 = "-";
@@ -29,3 +40,9 @@ module.exports.getLocalDateAndTime = function(){
 	var date = new Date();
     return date.toLocaleString('chinese', { hour12: false });
 };
+
+// 获取毫秒数
+module.exports.getMilliseconds = function(){
+	var date = new Date();
+	return date.valueOf();
+}

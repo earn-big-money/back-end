@@ -1,7 +1,24 @@
-var db = require('./DBController_Yukikaze');
+var db = require('./DBController_public');
 
 var tradeSystem = function() {
 	this.version = "1.0.0";
+
+	// 余额查询
+	this.checkBalanceTrade = function(uid, callback) {
+		console.log("ddddddddddddd");
+		let strc = db.getSQLObject();
+		strc["query"] = 'select';
+		strc["tables"] = "userInfo";
+		strc["data"] = {
+			"umoney": 0
+		};
+		strc["where"]["condition"] = [
+			"uid  = " + db.typeTransform(uid)
+		];
+		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+			callback(resultFromDatabase[0]);
+		});
+	}
 
 	// 用于创建交易
 	this.createTrade = function(args, callback) {

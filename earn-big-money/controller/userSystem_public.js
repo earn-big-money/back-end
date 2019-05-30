@@ -1,4 +1,4 @@
-var db = require('./DBController_Yukikaze');
+var db = require('./DBController_public');
 
 var userSystem = function() {
 	
@@ -23,44 +23,55 @@ var userSystem = function() {
 			"utype": req.body.status
 		};//传入一个结构体
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase); // 取下标为0即可
-			if (resultFromDatabase == undefined) {
+			//console.log(resultFromDatabase); // 取下标为0即可
+			if (resultFromDatabase == null) {
 				res.status(400);
 				res.send({"msg" : "Invaild message"});
 			}
 			else {
-				res.send({"msg" : "Success"});
-				console.log(resultFromDatabase)
+				res.send({
+					"msg" : "Success"
+				});
 			}
-		});//回调函数，
+		});//回调函数，	
 	};
 	
 	// 用户登录
 	this.loginUser = function(req, res, next) {
-		let strc = db.getSQLObject();
-		strc["query"] = 'select';
-		strc["tables"] = "userInfo";
-		strc["data"] = {
-			"uid": req.body.id,
-			"uname": req.body.username,
-			"upassword": req.body.password
-		};
-		strc["where"]["condition"] = ["uid = "+req.body.id];
-		// console.log("uid = "+req.body.id)
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase[0]); // 取下标为0即可
-			if (resultFromDatabase[0] == undefined || 
-			req.body.password !== resultFromDatabase[0].upassword) {
-				res.status(400);
-				res.send({"msg" : "Incorrect username or password"});
-			}
-			else {
-				req.session.regenerate((err) => {
-					req.session.user = resultFromDatabase[0];
-					res.send({"msg" : "Success"});
-				});
-			}
-		});//回调函数，
+		if (req.session.user) {
+			res.status(400);
+			res.send({
+				"msg" : "[" + req.session.user.uid + "] already log in"
+			});
+		}
+		else {
+			let strc = db.getSQLObject();
+			strc["query"] = 'select';
+			strc["tables"] = "userInfo";
+			strc["data"] = {
+				"uid": 0
+			};
+			strc["where"]["condition"] = [
+				`(uid = ${db.typeTransform(req.body.id)} or
+				 uemail = ${db.typeTransform(req.body.id)} or
+				 uphone = ${db.typeTransform(req.body.id)})`,
+				"upassword = " + db.typeTransform(req.body.password)
+			];
+			db.ControlAPI_obj(strc, (resultFromDatabase)=>{
+				if (resultFromDatabase == null || resultFromDatabase.length == 0) {
+					res.status(400);
+					res.send({"msg" : "Incorrect id or password"});
+				}
+				else {
+					req.session.regenerate((err) => {
+						req.session.user = resultFromDatabase[0];
+						res.send({
+							"msg" : "Success"
+						});
+					});
+				}
+			});
+		}
 	};
 	
 	// 用户登出
@@ -71,35 +82,49 @@ var userSystem = function() {
 		});
 	};
 	
-	// 用户查找
+	// 用户查找，感觉查找的内容可以是任意一个用户，所以没必要做登陆检测
 	this.queryUser = function(req, res, next) {
 		let strc = db.getSQLObject();
-		console.log(req.query.id)
 		strc["query"] = 'select';
 		strc["tables"] = "userInfo";
 		strc["data"] = {
-			"uid": req.query.id,
-			"uname": req.body.username,
-			"uphone": req.body.phone,
-			"uemail": req.body.email,
-			"utype": req.body.status,
-			"umoney": 1,
-			"ucreatetime": 2
+			"uid": 0,
+			"uname": 0,
+			"uphone": 0,
+			"uemail": 0,
+			"utype": 0,
+			"ucreatetime": 0
 		};
-		strc["where"]["condition"] = ["uid = "+req.query.id];
+		strc["where"]["condition"] = [
+			"uid    = " + db.typeTransform(req.params.account),
+			"uemail = " + db.typeTransform(req.params.account),
+			"uphone = " + db.typeTransform(req.params.account)
+		];
+		strc["where"]["type"] = "or";
 		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase[0]); // 取下标为0即可
-			if (resultFromDatabase[0] == undefined) {
-				res.send({"msg":"用户不存在"})
+			if (resultFromDatabase == null || resultFromDatabase.length == 0) {
+				res.send({"msg" : `User[${req.params.account}] does not exist`})
 			}
 			else {
-				res.send({"info": resultFromDatabase[0]});
+				res.send({
+					"id" : resultFromDatabase[0]["uid"],
+					"username" : resultFromDatabase[0]["uname"],
+					"phone" : resultFromDatabase[0]["uphone"],
+					"email" : resultFromDatabase[0]["uemail"],
+					"status" : resultFromDatabase[0]["utype"],
+					"createTime" : resultFromDatabase[0]["ucreatetime"]
+				});
 			}
-		});//回调函数，
+		});
 	};
 
-	// 用户更新
+	// 用户更新个人信息
 	this.updateUser = function(req, res, next) {
+		if (req.session.user.uid != req.params.account) {
+			res.status(400);
+			res.send({'msg':'Unauthorized operations.'});
+			return;
+		}
 		let strc = db.getSQLObject();
 		strc["query"] = 'update';
 		strc["tables"] = "userInfo";
@@ -115,23 +140,24 @@ var userSystem = function() {
 		if (req.body.status != null) {
 			strc["data"]["utype"] = req.body.status;
 		}
-		if (req.body.money != null) {
-			strc["data"]["umoney"] = req.body.money;
-		}
-		console.log(strc["data"])
-		strc["where"]["condition"] = ["uid = "+req.body.id];
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			console.log(resultFromDatabase)
-			if (resultFromDatabase !== null && resultFromDatabase.message.charAt(15) !== '0') {
-				res.send({"msg" : "Success"})
-			}
-			else {
+		strc["where"]["condition"] = [
+			"uid  = " + db.typeTransform(req.session.user.uid)
+		];
+		db.ControlAPI_obj(strc, (resultFromDatabase) => {
+			console.log(resultFromDatabase);
+			if (resultFromDatabase == null) {
+				res.status(400);
 				res.send({"msg": "Failed in modification."});
 			}
-		});//回调函数，
+			else {
+				res.send({"msg" : "Success"})
+			}
+		});
 	};
-
-
+	
+	// 用户群组查找
+	// 用户加入兴趣组
+	// 用户退出兴趣组
 };
 
 module.exports = new userSystem();
