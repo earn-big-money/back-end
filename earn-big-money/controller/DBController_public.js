@@ -94,9 +94,53 @@ var dbController = function() {
 	};
 
 	this.ControlAPI_obj = function(data, callback){
-		sqlObj = this._structureAnalysis(data);
-		this._generalOperation(sqlObj["sql"], sqlObj["value"], callback);
+		var sqlObj = this._structureAnalysis(data);
+		this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+			if(result == null || result.length == 0){
+				callback(null);
+			}
+			else{
+				callback(result);
+			}
+		});
 	};
+	
+	this.ControlAPI_obj_async = async function(data) {
+		var sqlObj = this._structureAnalysis(data);
+		return await new Promise((resolved, rejected)=>{
+			this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+				if(result == null || result.length == 0){
+					resolved(null);
+					return;
+				}
+				else{
+					resolved(result);
+					return;
+				}
+			});
+		}).then(value => value);
+	}
+	
+	this.ControlAPI_objs_async = async function(...vars) {
+		let len = vars.length;
+		let promiseList = [];
+		for(let i = 0; i < len; i++){
+			let sqlObj = this._structureAnalysis(vars[i]);
+			promiseList.push(new Promise((resolved, rejected)=>{
+				this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+					if(result == null || result.length == 0){
+						resolved(null);
+						return;
+					}
+					else{
+						resolved(result);
+						return;
+					}
+				});
+			}));
+		}
+		return await Promise.all(promiseList).then((...values)=> {return values;});
+	}
 	
 	// user是一个结构体，callback是回调函数
 	/*
