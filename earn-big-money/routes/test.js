@@ -12,8 +12,22 @@ router.get('/test1_lhl', async function(req, res, next) {
 		strc["data"] = {
 			"*":0
 		};
-		let value = await db.ControlAPI_obj_async(strc);
-		res.send({title: value});
+		let one = await db.ControlAPI_obj_async(strc);
+
+		let strc1 = db.getSQLObject(), strc2 = db.getSQLObject();
+		strc1["query"] = "select";
+		strc1["tables"] = "userDuty";
+		strc1["data"] = {
+			"*":0
+		};
+		
+		strc2["query"] = "select";
+		strc2["tables"] = "duty";
+		strc2["data"] = {
+			"*":0
+		};
+		let many = await db.ControlAPI_objs_async(strc1, strc2);
+		res.send({one : one, many : many});
 	}
 	catch(err) {
 		res.send({err1: err});
