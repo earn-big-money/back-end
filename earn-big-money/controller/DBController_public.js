@@ -105,41 +105,37 @@ var dbController = function() {
 		});
 	};
 	
-	this.ControlAPI_obj_async = async function(data) {
+	this.ControlAPI_obj_async = function(data) {
 		var sqlObj = this._structureAnalysis(data);
-		return await new Promise((resolved, rejected)=>{
+		return new Promise((resolved, rejected)=>{
 			this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
-				if(result == null || result.length == 0){
-					resolved(null);
-					return;
+				if(result == null){
+					rejected(null);
 				}
 				else{
 					resolved(result);
-					return;
 				}
 			});
-		}).then(value => value);
+		});
 	}
 	
-	this.ControlAPI_objs_async = async function(...vars) {
+	this.ControlAPI_objs_async = function(...vars) {
 		let len = vars.length;
 		let promiseList = [];
 		for(let i = 0; i < len; i++){
 			let sqlObj = this._structureAnalysis(vars[i]);
 			promiseList.push(new Promise((resolved, rejected)=>{
 				this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
-					if(result == null || result.length == 0){
-						resolved(null);
-						return;
+					if(result == null){
+						rejected(null);
 					}
 					else{
 						resolved(result);
-						return;
 					}
 				});
 			}));
 		}
-		return await Promise.all(promiseList).then((...values)=> {return values;});
+		return Promise.all(promiseList);
 	}
 	
 	// user是一个结构体，callback是回调函数

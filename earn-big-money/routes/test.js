@@ -4,6 +4,23 @@ var router = express.Router();
 var db = require('./../controller/DBController_public');
 var test_module = require('./../controller/groupSystem_public');
 
+router.get('/test1_lhl', async function(req, res, next) {
+	try {
+		let strc = db.getSQLObject();
+		strc["query"] = "select";
+		strc["tables"] = "userInfo";
+		strc["data"] = {
+			"*":0
+		};
+		let value = await db.ControlAPI_obj_async(strc);
+		res.send({title: value});
+	}
+	catch(err) {
+		res.send({err1: err});
+	}
+});
+
+/*
 router.get('/', async function(req, res, next) {
 	let strc = db.getSQLObject();
 	strc["query"] = "select";
@@ -40,7 +57,7 @@ router.get('/many', async function(req, res, next) {
 	let value = await db.ControlAPI_objs_async(strc, strc1, strc2);
 	res.send({title: value});
 });
-
+*/
 var obj = {};
 
 router.post('/testDB_create', test_module.createGroup);
