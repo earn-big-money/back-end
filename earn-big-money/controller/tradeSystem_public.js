@@ -5,6 +5,7 @@ var tradeSystem = function() {
 
 	// 余额查询
 	this.checkBalanceTrade = function(uid, callback) {
+		console.log("ddddddddddddd");
 		let strc = db.getSQLObject();
 		strc["query"] = 'select';
 		strc["tables"] = "userInfo";

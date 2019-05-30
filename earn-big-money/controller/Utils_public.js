@@ -8,7 +8,9 @@ module.exports.loginCheck = function(req, res, next){
         res.status(400);
         res.send({'msg':'Please login first.'});
     }
-    next();
+    else{
+        next();
+    }
 }
 
 // yyyy-M-dd : 数据库统一使用此格式

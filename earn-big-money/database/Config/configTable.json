@@ -15,7 +15,7 @@
 		["create table if not exists duty(",
 			"did nvarchar(30),",
 			"dtitle nvarchar(50),",
-			"dsponsor int(8), ",
+			"dsponsor nvarchar(8), ",
 			"daccepters int, ",
 			"curaccepters int not null default 0, ",
 			"dmodifyTime TIMESTAMP DEFAULT NOW() ON UPDATE NOW(),",
