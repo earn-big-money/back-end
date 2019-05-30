@@ -24,6 +24,7 @@
 			"dendTime nvarchar(20),",
 			"dmoney int not null default 0,",
 			"dtype nvarchar(20) default 'notice' check (utype='legwork' or utype='notice' or utype='survey'),",
+			"foreign key (dsponsor) REFERENCES userInfo(uid) ON UPDATE CASCADE ON DELETE NO ACTION,",
 			"primary key(did)",
 		") engine=InnoDB;"],
 		["create table if not exists tradeRecord(",
