@@ -289,6 +289,52 @@ var dutySystem = function() {
 			
 	}
 
+	this.screenDuty = async function(req, res, next) {
+		let strc = db.getSQLObject();
+		let tableStr = "duty";
+		let dataObj = {
+			"duty.*":0
+		};
+		let conditions = [];
+
+		if(req.query.selectByAccepter){
+			dataObj["userDuty.uid as accepter"] = 0;
+			dataObj["userDuty.status"] = 0;
+			tableStr = "userDuty," + tableStr;
+			conditions.push('userDuty.did = duty.did');
+			conditions.push('userDuty.uid = ' + db.typeTransform(req.query.selectByAccepter));
+		}
+		if(req.query.selectBySponsor) {
+			conditions.push('duty.dsponsor = ' + db.typeTransform(req.query.selectBySponsor));
+		}
+		if(req.query.selectByType) {
+			conditions.push('duty.dtype = ' + db.typeTransform(req.query.selectByType));
+		}
+
+		strc["query"] = 'select';
+		strc["tables"] = tableStr;
+		strc["data"] = dataObj;
+		strc["where"]["condition"] = conditions;
+		strc["options"]["limit"] = (req.query.pageNumber-1)*req.query.countPerPage+","+req.query.countPerPage;
+		orderStr = "";
+		if(req.query.sortType) {
+			orderStr += req.query.sortType == "time" ? "dmodifyTime " : "";
+			orderStr += req.query.sortType == "money" ? "dmoney " : "";
+		}
+		if(req.query.sortOrder) {
+			orderStr += req.query.sortOrder == "ascend" ? "ASC" : "";
+			orderStr += req.query.sortOrder == "descend" ? "DESC" : "";
+		}
+		strc["options"]["order by"] = orderStr;
+		try{
+			let result = await db.ControlAPI_obj_async(strc);
+			res.send({"count": result.length, "content": result});
+		}
+		catch(error){
+			res.send({ "msg": "Failed in screening.."})
+		}
+	};
+	/*
 	this.screenDuty = function(req, res, next) {
 		let strc = db.getSQLObject();
 		strc["query"] = 'select';
@@ -333,7 +379,7 @@ var dutySystem = function() {
 				res.send({"count": resultFromDatabase.length, "content": resultFromDatabase});
 			}
 		});//回调函数，
-	}
+	}*/
 }
 
 module.exports = new dutySystem();
