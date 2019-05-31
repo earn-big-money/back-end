@@ -109,7 +109,7 @@ var dbController = function() {
 		var sqlObj = this._structureAnalysis(data);
 		return new Promise((resolved, rejected)=>{
 			this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
-				if(result == null){
+				if(result === null){
 					rejected(null);
 				}
 				else{
@@ -126,7 +126,7 @@ var dbController = function() {
 			let sqlObj = this._structureAnalysis(vars[i]);
 			promiseList.push(new Promise((resolved, rejected)=>{
 				this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
-					if(result == null){
+					if(result === null){
 						rejected(null);
 					}
 					else{

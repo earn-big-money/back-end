@@ -107,43 +107,61 @@ var dutySystem = function() {
 	}
 
 	// 用于查询任务
-	this.queryDuty = function(req, res, next){
-		let strc = db.getSQLObject();
-		strc["query"] = 'select';
-		strc["tables"] = "duty";
-		strc["data"] = {
-			"did": 0,
-			"dtitle": 0,
-			"dsponsor": 0,
-			"daccepters": 0,
-			"curaccepters": 0,
-			"dmodifyTime": 0,
-			"dcontent": 0,
-			"dstartTime": 0,
-			"dendTime": 0,
-			"dmoney": 0,
-			"dtype": 0
-		};
-		strc["where"]["condition"] = ["did = " + db.typeTransform(req.params.did)];
-		db.ControlAPI_obj(strc, (resultFromDatabase)=>{
-			if (resultFromDatabase == null || resultFromDatabase.length == 0) {
-				res.send({ "msg": "Failed in finding this duty."})
+	this.queryDuty = async function(req, res, next){
+		try{
+			let strc = db.getSQLObject();
+			strc["query"] = 'select';
+			strc["tables"] = "duty";
+			strc["data"] = {
+				"did": 0,
+				"dtitle": 0,
+				"dsponsor": 0,
+				"daccepters": 0,
+				"curaccepters": 0,
+				"dmodifyTime": 0,
+				"dcontent": 0,
+				"dstartTime": 0,
+				"dendTime": 0,
+				"dmoney": 0,
+				"dtype": 0
+			};
+			strc["where"]["condition"] = ["did = " + db.typeTransform(req.params.did)];
+			var duty = await db.ControlAPI_obj_async(strc);
+			if(duty.length == 0) {
+				utils.sendError(400, '任务不存在');
 			}
-			else {
-				res.send({ 
-					"id": resultFromDatabase[0].did,
-					"sponsor": resultFromDatabase[0].dsponsor,
-					"title": resultFromDatabase[0].dtitle,
-					"accepters": resultFromDatabase[0].daccepters,
-					"curAccepters": resultFromDatabase[0].curaccepters,
-					"content": resultFromDatabase[0].dcontent,
-					"money": resultFromDatabase[0].dmoney,
-					"startTime": resultFromDatabase[0].dstartTime,
-					"endTime": resultFromDatabase[0].dendTime,
-					"type": resultFromDatabase[0].dtype
-				});
-			}
-		});
+		}
+		catch (error) {
+			utils.sendError(400, 'Error in queryDuty 0.');
+		}
+
+		try {
+			let strc = db.getSQLObject();
+			strc["query"] = 'select';
+			strc["tables"] = "userDuty";
+			strc["data"] = {
+				"uid": 0,
+				"status": 0
+			};
+			strc["where"]["condition"] = ["did = " + db.typeTransform(req.params.did)];
+			let accepters = await db.ControlAPI_obj_async(strc);
+			res.send({ 
+				"id": duty[0].did,
+				"sponsor": duty[0].dsponsor,
+				"title": duty[0].dtitle,
+				"maxAccepters": duty[0].daccepters,
+				"accepters": accepters,
+				"curAccepters": duty[0].curaccepters,
+				"content": duty[0].dcontent,
+				"money": duty[0].dmoney,
+				"startTime": duty[0].dstartTime,
+				"endTime": duty[0].dendTime,
+				"type": duty[0].dtype
+			});
+		} 
+		catch (error) {
+			res.send({ "msg": "Error in queryDuty 1."});
+		}
 	}
 	
 	// 用于更新任务

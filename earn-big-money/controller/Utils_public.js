@@ -2,6 +2,12 @@
 此文件用于放置公共函数
 */
 
+// 错误返回函数
+module.exports.sendError = function(status, msg){
+    res.status(status);
+    res.send({msg : msg});
+}
+
 // 登录验证中间件
 module.exports.loginCheck = function(req, res, next){
 	if (req.session.user == null) {
