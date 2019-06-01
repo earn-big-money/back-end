@@ -3,7 +3,7 @@
 */
 
 // 错误返回函数
-module.exports.sendError = function(status, msg){
+module.exports.sendError = function(res, status, msg){
     res.status(status);
     res.send({msg : msg});
 }
