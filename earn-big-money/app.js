@@ -73,9 +73,9 @@ app.use(function(err, req, res, next) {
   res.send();
 });
 
-
+/*如无必要，请勿开启
 app.listen(8080,function(){
     console.log('run server');
 })
-
+*/
 module.exports = app;

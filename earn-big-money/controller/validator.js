@@ -1,5 +1,4 @@
-export default validator = {};
-
+var validator = {};
 // 账号
 validator.checkID = function(input){
   return /^[a-zA-Z][0-9a-zA-Z_]{4,6}[0-9a-zA-Z_]$/.test(input) || !input;
@@ -16,3 +15,5 @@ validator.checkPhone = function(input){
 validator.checkEmail = function(input){
   return /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/.test(input) || !input;
 };
+
+module.export = validator;
