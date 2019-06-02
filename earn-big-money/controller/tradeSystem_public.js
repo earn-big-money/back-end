@@ -1,4 +1,5 @@
 var db = require('./DBController_public');
+var utils = require('./Utils_public')
 
 var tradeSystem = function() {
 	this.version = "1.0.0";
@@ -17,9 +18,43 @@ var tradeSystem = function() {
 		return await db.ControlAPI_obj_async(strc);
 	}
 
-	// 用于创建交易
-	this.createTrade = function(args, callback) {
-		
+	// 添加交易记录,buyer获得者，seller支出者
+	this.addTradeRecord = async function(seller, buyer, money) {
+		let strc = db.getSQLObject();
+		strc["query"] = 'insert';
+		strc["tables"] = "tradeRecord";
+		strc["data"] = {
+			"seller": seller,
+			"buyer" : buyer,
+			"money" : money
+		};
+		return await db.ControlAPI_obj_async(strc);
+	}
+
+	// 修改用户余额
+	this.updateMoney = async function(user, amount) {
+		let strc = db.getSQLObject();
+		strc["query"] = 'update';
+		strc["tables"] = "userInfo";
+		strc["data"] = {
+			"umoney" : amount
+		};
+		strc["where"]["condition"] = [
+			"uid  = " + db.typeTransform(user)
+		];
+		return await db.ControlAPI_obj_async(strc);
+	}
+
+	// 充值
+	this.topupTrade = async function(buyer, amount) {
+		try{
+			await this.addTradeRecord('admin', buyer, amount);
+			await this.updateMoney(buyer, money);
+			res.send({msg :'Success'});
+		}
+		catch (error) {
+			utils.sendError(res, 400, "Error: topup. 0");
+		}
 	}
 	
 	// 用于取消交易

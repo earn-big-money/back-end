@@ -16,13 +16,35 @@ router.get('/', utils.loginCheck, async function(req, res, next) {
 });
 
 // 登录用户充值
-router.post('/topup', utils.loginCheck, function(req, res, next) {
-	res.send({msg: 'balance'});
+router.post('/topup', utils.loginCheck, async function(req, res, next) {
+	try{
+		let balance = await tradeSystem.checkBalance(req.session.user.uid);
+		await tradeSystem.updateMoney(req.session.user.uid, req.body.amount + balance[0]['umoney']);
+		await tradeSystem.addTradeRecord('admin', req.session.user.uid, req.body.amount);
+		res.send({msg :'Success'});
+	}
+	catch (error) {
+		utils.sendError(res, 400, "Error: topup. 0");
+	}
 });
 
 // 登录用户转账
-router.get('/transfer', utils.loginCheck, function(req, res, next) {
-	res.send({msg: 'balance'});
+router.post('/transfer', utils.loginCheck, async function(req, res, next) {
+	try{
+		let giverBalance = await tradeSystem.checkBalance(req.session.user.uid);
+		let receiverBalance = await tradeSystem.checkBalance(req.body.receiver);
+		if(giverBalance[0]['umoney'] < req.body.amount) {
+			utils.sendError(res, 400, "Your balance is not enough.");
+			return;
+		}
+		await tradeSystem.updateMoney(req.session.user.uid, giverBalance[0]['umoney'] - req.body.amount);
+		await tradeSystem.updateMoney(req.body.receiver, receiverBalance[0]['umoney'] + req.body.amount);
+		await tradeSystem.addTradeRecord(req.session.user.uid, req.body.receiver, req.body.amount);
+		res.send({msg :'Success'});
+	}
+	catch (error) {
+		utils.sendError(res, 400, "Error: transfer. 0");
+	}
 });
 
 module.exports = router;

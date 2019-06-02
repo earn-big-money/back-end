@@ -390,7 +390,7 @@ var dutySystem = function() {
 			res.send({"count": result.length, "content": result});
 		}
 		catch(error){
-			res.send({ "msg": "Failed in screening.."})
+			res.send({ "msg": "Failed in screening."})
 			return;
 		}
 	};

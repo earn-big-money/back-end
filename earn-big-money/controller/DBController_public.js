@@ -68,8 +68,7 @@ var dbController = function() {
 				optionKey.push([key, sqlObj["options"][key]].join(" "));
 			}
 		}
-		
-		//console.log(hasWhere);
+
 		let sql = {
 			"update" : `update ${sqlObj["tables"]} set ${dataKey.join(",")} ${hasWhere? whereSql : ""};`,
 			"select" : `select ${dataKey.join(",")} from ${sqlObj["tables"]} ${hasWhere? whereSql : ""} ${optionKey.join(" ")};`,
