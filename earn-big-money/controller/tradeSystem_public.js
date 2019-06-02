@@ -19,14 +19,15 @@ var tradeSystem = function() {
 	}
 
 	// 添加交易记录,buyer获得者，seller支出者
-	this.addTradeRecord = async function(seller, buyer, money) {
+	this.addTradeRecord = async function(seller, buyer, money, did) {
 		let strc = db.getSQLObject();
 		strc["query"] = 'insert';
 		strc["tables"] = "tradeRecord";
 		strc["data"] = {
 			"seller": seller,
 			"buyer" : buyer,
-			"money" : money
+			"money" : money,
+			"did"   : did
 		};
 		return await db.ControlAPI_obj_async(strc);
 	}
