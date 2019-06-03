@@ -490,7 +490,6 @@ var dutySystem = function() {
 	};
 
 	this.getDutyAccepters = async function(req, res, next) {
-		// uid, did
 		let strc_duty = db.getSQLObject(),
 			strc_user = db.getSQLObject();
 
@@ -500,8 +499,7 @@ var dutySystem = function() {
 			"*": 0
 		};
 		strc_duty["where"]["condition"] = [
-			"did = " + db.typeTransform(req.query.did),
-			"dsponsor = " + db.typeTransform(req.query.uid)
+			"did = " + db.typeTransform(req.query.did)
 		];
 
 		strc_user["query"] = "select";
