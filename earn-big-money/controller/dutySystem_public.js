@@ -1,11 +1,24 @@
 var db = require('./DBController_public');
 var utils = require('./Utils_public')
+var tradeSystem = require('./tradeSystem_public')
 
 var dutySystem = function() {
 	this.version = "1.0.0";
 	// 用于创建任务
 	this.createDuty = async function(req, res, next) {
 		// 首先判断用户是否存在，余额够不够，然后再更新事务表和用户表，事务用户表
+		var userMoney = 0;
+		// 查看账户余额
+		try {
+			userMoney = await tradeSystem.checkBalance(req.session.user.uid);
+			if(userMoney[0].umoney < req.body.money * req.body.accepters){
+				utils.sendError(res, 400, "Not enough money");
+				return;
+			}
+		}
+		catch(error) {
+			utils.sendError(res, 400, "Fail");
+		}
 		tdid = (req.session.user.uid).toString() + "_" + utils.getMilliseconds().toString()
 		try {
 			let strc = db.getSQLObject();
@@ -33,6 +46,17 @@ var dutySystem = function() {
 			utils.sendError(res, 400, "Failed in creating a duty. 0");
 			return;
 		}
+		// 更新账户余额
+		try {
+			let systemMoney = await tradeSystem.checkBalance("admin");
+			let result = await tradeSystem.updateMoney(req.session.user.uid, userMoney[0].umoney-req.body.money * req.body.accepters);
+			result = await tradeSystem.updateMoney("admin", systemMoney[0].umoney+req.body.money * req.body.accepters);
+			result = await tradeSystem.addTradeRecord(req.session.user.uid, "admin", req.body.money * req.body.accepters);
+		}
+		catch(error) {
+			utils.sendError(res, 400, "Can not update money");
+		}
+
 		try {
 			//更新用户-事务表
 			let strc = db.getSQLObject();
@@ -308,7 +332,7 @@ var dutySystem = function() {
 			let resultFromDatabase = await db.ControlAPI_obj_async(strc);
 			if (resultFromDatabase == null || resultFromDatabase.length == 0) {
 				//事务id不存在
-				utils.sendError(res, 400, 'Duty[${req.params.did}] does not exist');
+				utils.sendError(res, 400, `Duty[${req.params.did}] does not exist`);
 				return;
 			}
 			else if (resultFromDatabase[0].dsponsor != req.session.user.uid) {
@@ -392,6 +416,117 @@ var dutySystem = function() {
 		catch(error){
 			res.send({ "msg": "Failed in screening."})
 			return;
+		}
+	};
+
+	this.commitDuty = async function(req, res, next) {
+		let stru = db.getSQLObject();
+		stru["query"] = "update";
+		stru["tables"] = "userDuty";
+		stru["data"] = {
+			"status" : "done"
+		};
+		stru["where"]["condition"] = [
+			"did = " + db.typeTransform(req.body.did),
+			"uid = " + db.typeTransform(req.session.user.uid)
+		];
+		try {
+			let result = await db.ControlAPI_obj_async(stru);
+			res.send({ "msg": "Success."})
+			return;
+		}
+		catch(error) {
+			res.send({ "msg": "Failed to commit the duty."})
+			return;
+		}
+	};
+
+	this.confirmDuty = async function(req, res, next) {
+		let stru = db.getSQLObject(),
+			stru1 = db.getSQLObject();
+		stru["query"] = "update";
+		stru["tables"] = "userDuty";
+		stru["data"] = {
+			"status" : "finish"
+		};
+		stru["where"]["condition"] = [
+			"did = " + db.typeTransform(req.body.did),
+			"uid = " + db.typeTransform(req.body.accepter)
+		];
+
+		stru1["query"] = "select";
+		stru1["tables"] = "duty";
+		stru1["data"] = {
+			"dmoney" : 0
+		}
+		stru1["where"]["condition"] = [
+			"did = " + db.typeTransform(req.body.did),
+			"dsponsor = " + db.typeTransform(req.session.user.uid)
+		];
+		// 更新账户余额
+		try {
+			let dutyMoney = await db.ControlAPI_obj_async(stru1);
+			if(dutyMoney.length == 0) {
+				throw "No duty"
+			}
+			let userMoney = await tradeSystem.checkBalance(req.body.accepter);
+			let systemMoney = await tradeSystem.checkBalance("admin");
+			let result = await tradeSystem.updateMoney(req.body.accepter, userMoney[0].umoney+dutyMoney[0].dmoney);
+			result = await tradeSystem.updateMoney("admin", systemMoney[0].umoney-dutyMoney[0].dmoney);
+			result = await tradeSystem.addTradeRecord("admin", req.body.accepter, dutyMoney[0].dmoney);
+		}
+		catch(error) {
+			utils.sendError(res, 400, "Can not update the trade record : " + error);
+		}
+		try {
+			let result = await db.ControlAPI_obj_async(stru);
+			res.send({ "msg": "Success."})
+			return;
+		}
+		catch(error) {
+			res.send({ "msg": "Failed to commit the duty."})
+			return;
+		}
+	};
+
+	this.getDutyAccepters = async function(req, res, next) {
+		// uid, did
+		let strc_duty = db.getSQLObject(),
+			strc_user = db.getSQLObject();
+
+		strc_duty["query"] = "select";
+		strc_duty["tables"] = "duty";
+		strc_duty["data"] = {
+			"*": 0
+		};
+		strc_duty["where"]["condition"] = [
+			"did = " + db.typeTransform(req.query.did),
+			"dsponsor = " + db.typeTransform(req.query.uid)
+		];
+
+		strc_user["query"] = "select";
+		strc_user["tables"] = "userDuty";
+		strc_user["data"] = {
+			"uid" : 0,
+			"status" : 0
+		};
+
+		try {
+			let dutyInfo = await db.ControlAPI_obj_async(strc_duty);
+			var userInfo;
+			if(dutyInfo.length != 0) {
+				strc_user["where"]["condition"] = ["did = " + db.typeTransform(req.query.did)];
+				userInfo = await db.ControlAPI_obj_async(strc_user);
+				res.send({"duty" : dutyInfo[0], "accepters" : userInfo});
+				return;
+			}
+			else {
+				utils.sendError(res, 400, "Not Sponsor");
+				return;
+			}
+		}
+		catch(error) {
+			utils.sendError(res, 400, "Error");
 		}
 	};
 }
