@@ -18,8 +18,10 @@ router.get('/', utils.loginCheck, async function(req, res, next) {
 // 登录用户充值
 router.post('/topup', utils.loginCheck, async function(req, res, next) {
 	try{
+		req.body.amount = parseInt(req.body.amount);
 		let balance = await tradeSystem.checkBalance(req.session.user.uid);
 		await tradeSystem.updateMoney(req.session.user.uid, req.body.amount + balance[0]['umoney']);
+		await tradeSystem.addTradeRecord(req.session.user.uid, 'admin', req.body.amount, null);
 		await tradeSystem.addTradeRecord('admin', req.session.user.uid, req.body.amount, null);
 		res.send({msg :'Success'});
 	}
@@ -35,6 +37,7 @@ router.post('/transfer', utils.loginCheck, async function(req, res, next) {
 			utils.sendError(res, 400, "You can't transfer money to yourself.");
 			return;
 		}
+		req.body.amount = parseInt(req.body.amount);
 		let giverBalance = await tradeSystem.checkBalance(req.session.user.uid);
 		let receiverBalance = await tradeSystem.checkBalance(req.body.receiver);
 		if(giverBalance[0]['umoney'] < req.body.amount) {
