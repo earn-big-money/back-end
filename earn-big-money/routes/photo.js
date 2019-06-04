@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
-
 var photo = require('./../controller/imageSystem_public');
+var utils = require('./../controller/Utils_public');
 
-router.post('/uploadUserPhoto', photo.uploadUserPhoto);
+router.post('/uploadUserPhoto', utils.loginCheck, photo.uploadUserPhoto);
 
 router.post('/uploadDutyPhoto', photo.uploadDutyPhoto);
 

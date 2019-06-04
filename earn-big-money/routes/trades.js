@@ -21,8 +21,25 @@ router.post('/topup', utils.loginCheck, async function(req, res, next) {
 		req.body.amount = parseInt(req.body.amount);
 		let balance = await tradeSystem.checkBalance(req.session.user.uid);
 		await tradeSystem.updateMoney(req.session.user.uid, req.body.amount + balance[0]['umoney']);
-		await tradeSystem.addTradeRecord(req.session.user.uid, 'admin', req.body.amount, null);
 		await tradeSystem.addTradeRecord('admin', req.session.user.uid, req.body.amount, null);
+		res.send({msg :'Success'});
+	}
+	catch (error) {
+		utils.sendError(res, 400, "Error: topup. 0");
+	}
+});
+
+// 登录用户提现
+router.post('/cashout', utils.loginCheck, async function(req, res, next) {
+	try{
+		req.body.amount = parseInt(req.body.amount);
+		let balance = await tradeSystem.checkBalance(req.session.user.uid);
+		if(balance[0]['umoney'] < req.body.amount) {
+			utils.sendError(res, 400, "Your balance is not enough.");
+			return;
+		}
+		await tradeSystem.updateMoney(req.session.user.uid, req.body.amount - balance[0]['umoney']);
+		await tradeSystem.addTradeRecord(req.session.user.uid, 'admin', req.body.amount, null);
 		res.send({msg :'Success'});
 	}
 	catch (error) {
