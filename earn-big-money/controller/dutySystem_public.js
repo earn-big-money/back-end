@@ -541,6 +541,7 @@ var dutySystem = function() {
 			if(dutyMoney.length == 0) {
 				throw "No duty"
 			}
+			accepters = req.body.accepter;
 			for(let i = 0; i < accepters.length; i++){
 				let userMoney = await tradeSystem.checkBalance(accepters[i]);
 				let systemMoney = await tradeSystem.checkBalance("admin");
