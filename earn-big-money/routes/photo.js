@@ -5,7 +5,7 @@ var utils = require('./../controller/Utils_public');
 
 router.post('/uploadUserPhoto', utils.loginCheck, photo.uploadUserPhoto);
 
-router.post('/uploadDutyPhoto', photo.uploadDutyPhoto);
+router.post('/uploadDutyPhoto', utils.loginCheck, photo.uploadDutyPhoto);
 
 router.get('/userPhoto/:id', photo.getUserPhoto);
 
