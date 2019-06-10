@@ -1,6 +1,6 @@
 var db = require('./DBController_public');
-var utils = require('./Utils_public')
-var tradeSystem = require('./tradeSystem_public')
+var utils = require('./Utils_public');
+var tradeSystem = require('./tradeSystem_public');
 
 var dutySystem = function() {
 	this.version = "1.0.0";
@@ -30,6 +30,7 @@ var dutySystem = function() {
 				"dtitle": req.body.title,
 				"dsponsor": req.session.user.uid,
 				"daccepters": req.body.accepters,
+				"dintroduction": req.body.introduction,
 				"dcontent": req.body.content,
 				"dstartTime": req.body.starttime,
 				"dendTime": req.body.endtime,
@@ -162,17 +163,7 @@ var dutySystem = function() {
 			strc["query"] = 'select';
 			strc["tables"] = "duty";
 			strc["data"] = {
-				"did": 0,
-				"dtitle": 0,
-				"dsponsor": 0,
-				"daccepters": 0,
-				"curaccepters": 0,
-				"dmodifyTime": 0,
-				"dcontent": 0,
-				"dstartTime": 0,
-				"dendTime": 0,
-				"dmoney": 0,
-				"dtype": 0
+				"*" : 0
 			};
 			strc["where"]["condition"] = ["did = " + db.typeTransform(req.params.did)];
 			var duty = await db.ControlAPI_obj_async(strc);
@@ -201,6 +192,7 @@ var dutySystem = function() {
 				"maxAccepters": duty[0].daccepters,
 				"accepters": accepters,
 				"curAccepters": duty[0].curaccepters,
+				"introduction" : duty[0].dintroduction,
 				"content": duty[0].dcontent,
 				"money": duty[0].dmoney,
 				"startTime": duty[0].dstartTime,
@@ -298,6 +290,9 @@ var dutySystem = function() {
 			}
 			if (req.body.money != null) {
 				strc["data"]["dmoney"] = req.body.money;
+			}
+			if (req.body.introduction != null) {
+				strc["data"]["dintroduction"] = req.body.introduction;
 			}
 			strc["where"]["condition"] = ["did = "+db.typeTransform(req.params.did)];
 			let resultFromDatabase = await db.ControlAPI_obj_async(strc);
