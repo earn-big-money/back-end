@@ -18,6 +18,7 @@ var dutySystem = function() {
 		}
 		catch(error) {
 			utils.sendError(res, 400, "Fail");
+			return;
 		}
 		tdid = (req.session.user.uid).toString() + "_" + utils.getMilliseconds().toString()
 		try {
@@ -56,6 +57,7 @@ var dutySystem = function() {
 		}
 		catch(error) {
 			utils.sendError(res, 400, "Can not update money");
+			return;
 		}
 
 		try {
@@ -71,9 +73,11 @@ var dutySystem = function() {
 			let resultFromDatabase = await db.ControlAPI_obj_async(strc);
 			if (resultFromDatabase == null) {
 				utils.sendError(res, 400, "Failed in creating a duty.");
+				return;
 			}
 			else {
 				res.send({"did": tdid});
+				return;
 			}				
 		}
 		catch(err) {
