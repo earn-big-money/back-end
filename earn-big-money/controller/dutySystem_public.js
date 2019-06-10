@@ -441,29 +441,9 @@ var dutySystem = function() {
 	};
 
 	this.confirmDuty = async function(req, res, next){
-		let temp_s = new dutySystem();
-		if(req.body.accepter.constructor == Array){
-			temp_s.confirmDutyForGroup(req, res, next);
-		}
-		else{
-			temp_s.confirmDutyForPerson(req, res, next);
-		}
-	}
-
-	this.confirmDutyForPerson = async function(req, res, next) {
-		let stru = db.getSQLObject(),
-			stru1 = db.getSQLObject();
-		stru["query"] = "update";
-		stru["tables"] = "userDuty";
-		stru["data"] = {
-			"status" : "finish"
-		};
-		stru["where"]["condition"] = [
-			"did = " + db.typeTransform(req.body.did),
-			"uid = " + db.typeTransform(req.body.accepter)
-		];
-
+		// 查询任务，确认权限
 		try {
+			let stru1 = db.getSQLObject();
 			stru1["query"] = "select";
 			stru1["tables"] = "duty";
 			stru1["data"] = {
@@ -473,134 +453,49 @@ var dutySystem = function() {
 				"did = " + db.typeTransform(req.body.did),
 				"dsponsor = " + db.typeTransform(req.session.user.uid)
 			];
-		}
-		catch(error){
-			utils.sendError(res, 400, "Log in first");
-		}
-		
-		// 更新账户余额
-		try {
 			let dutyMoney = await db.ControlAPI_obj_async(stru1);
 			if(dutyMoney.length == 0) {
-				throw "No duty"
+				utils.sendError(res, 400, "任务不存在或者你无权访问.");
+				return;
 			}
-			let userMoney = await tradeSystem.checkBalance(req.body.accepter);
-			let systemMoney = await tradeSystem.checkBalance("admin");
-			await tradeSystem.updateMoney(req.body.accepter, userMoney[0].umoney+dutyMoney[0].dmoney);
-			await tradeSystem.updateMoney("admin", systemMoney[0].umoney-dutyMoney[0].dmoney);
-			await tradeSystem.addTradeRecord("admin", req.body.accepter, dutyMoney[0].dmoney);
-		}
-		catch(error) {
-			utils.sendError(res, 400, "Can not update the trade record : " + error);
-		}
-		try {
-			let result = await db.ControlAPI_obj_async(stru);
-			res.send({ "msg": "Success."});
-			return;
-		}
-		catch(error) {
-			res.send({ "msg": "Failed to commit the duty."});
-			return;
-		}
-	};
-
-	this.confirmDutyForGroup = async function(req, res, next){
-		let stru = db.getSQLObject(),
-			stru1 = db.getSQLObject();
-		let accepters = []
-		for(var i = 0; i < req.body.accepter.length; i++){
-			accepters.push(db.typeTransform(req.body.accepter[i]));
-		}
-		stru["query"] = "update";
-		stru["tables"] = "userDuty";
-		stru["data"] = {
-			"status" : "finish"
-		};
-		stru["where"]["condition"] = [
-			"did = " + db.typeTransform(req.body.did),
-			"uid in ( " + accepters.join(",") + ")"
-		];
-		try {
-			stru1["query"] = "select";
-			stru1["tables"] = "duty";
-			stru1["data"] = {
-				"dmoney" : 0
-			}
-			stru1["where"]["condition"] = [
-				"did = " + db.typeTransform(req.body.did),
-				"dsponsor = " + db.typeTransform(req.session.user.uid)
-			];
-		}
-		catch(error){
-			utils.sendError(res, 400, "Log in first");
-		}
-		// 更新账户余额
-		try {
-			let dutyMoney = await db.ControlAPI_obj_async(stru1);
-			if(dutyMoney.length == 0) {
-				throw "No duty"
-			}
-			accepters = req.body.accepter;
+			accepters = req.body.accepters;
 			for(let i = 0; i < accepters.length; i++){
 				let userMoney = await tradeSystem.checkBalance(accepters[i]);
 				let systemMoney = await tradeSystem.checkBalance("admin");
 				await tradeSystem.updateMoney(accepters[i], userMoney[0].umoney+dutyMoney[0].dmoney);
 				await tradeSystem.updateMoney("admin", systemMoney[0].umoney-dutyMoney[0].dmoney);
-				await tradeSystem.addTradeRecord("admin", accepters[i], dutyMoney[0].dmoney);
+				await tradeSystem.addTradeRecord("admin", accepters[i], dutyMoney[0].dmoney, req.body.did);
 			}
 		}
-		catch(error) {
-			utils.sendError(res, 400, "Can not update the trade record : " + error);
+		catch(error){
+			utils.sendError(res, 400, "Error in confirmDuty 0.");
+			return;
 		}
+		// 修改任务状态
 		try {
+			let stru2 = db.getSQLObject();
+			let accepters = []
+			for(var i = 0; i < req.body.accepters.length; i++){
+				accepters.push(db.typeTransform(req.body.accepters[i]));
+			}
+			stru["query"] = "update";
+			stru["tables"] = "userDuty";
+			stru["data"] = {
+				"status" : "finish"
+			};
+			stru["where"]["condition"] = [
+				"did = " + db.typeTransform(req.body.did),
+				"uid in ( " + accepters.join(",") + ")"
+			];
 			let result = await db.ControlAPI_obj_async(stru);
 			res.send({ "msg": "Success."});
 			return;
 		}
 		catch(error) {
-			res.send({ "msg": "Failed to commit the duty."});
+			utils.sendError(res, 400, "Error in confirmDuty 1.");
 			return;
 		}
 	}
-
-	this.getDutyAccepters = async function(req, res, next) {
-		let strc_duty = db.getSQLObject(),
-			strc_user = db.getSQLObject();
-
-		strc_duty["query"] = "select";
-		strc_duty["tables"] = "duty";
-		strc_duty["data"] = {
-			"*": 0
-		};
-		strc_duty["where"]["condition"] = [
-			"did = " + db.typeTransform(req.query.did)
-		];
-
-		strc_user["query"] = "select";
-		strc_user["tables"] = "userDuty";
-		strc_user["data"] = {
-			"uid" : 0,
-			"status" : 0
-		};
-
-		try {
-			let dutyInfo = await db.ControlAPI_obj_async(strc_duty);
-			var userInfo;
-			if(dutyInfo.length != 0) {
-				strc_user["where"]["condition"] = ["did = " + db.typeTransform(req.query.did)];
-				userInfo = await db.ControlAPI_obj_async(strc_user);
-				res.send({"duty" : dutyInfo[0], "accepters" : userInfo});
-				return;
-			}
-			else {
-				utils.sendError(res, 400, "Not Sponsor");
-				return;
-			}
-		}
-		catch(error) {
-			utils.sendError(res, 400, "Error");
-		}
-	};
 }
 
 module.exports = new dutySystem();
