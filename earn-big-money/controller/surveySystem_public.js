@@ -13,7 +13,7 @@ var surveySystem = function() {
 			stru["data"] = {
 				"did" : req.body.did,
 				"uid" : req.session.user.uid,
-				"sdata": req.body.answer
+				"scontent": req.body.answer
 			};
 			await db.ControlAPI_obj_async(stru);
 			duty.commitDuty(req, res, next);
