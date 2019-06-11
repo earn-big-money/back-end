@@ -473,7 +473,7 @@ var dutySystem = function() {
 		}
 		// 修改任务状态
 		try {
-			let stru2 = db.getSQLObject();
+			let stru = db.getSQLObject();
 			let accepters = []
 			for(var i = 0; i < req.body.accepters.length; i++){
 				accepters.push(db.typeTransform(req.body.accepters[i]));
