@@ -22,12 +22,9 @@ router.delete('/duty/:did', utils.loginCheck, dutySystem.deleteDuty);
 router.get('/screen', dutySystem.screenDuty);
 
 // 接收者commit任务
-router.post('/commit', dutySystem.commitDuty);
+router.post('/commit', utils.loginCheck, dutySystem.commitDuty);
 
 // 发布者confirm任务
-router.post('/confirm', dutySystem.confirmDuty);
-
-// 发布者获取领取任务的人员信息
-router.get('/getAccepters', dutySystem.getDutyAccepters);
+router.post('/confirm', utils.loginCheck, dutySystem.confirmDuty);
 
 module.exports = router;
