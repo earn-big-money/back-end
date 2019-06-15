@@ -107,7 +107,7 @@ var dutySystem = function() {
 			}
 			else {
 				curaccepters = resultFromDatabase[0].curaccepters;
-				accepters = resultFromDatabase[0].accepters;
+				accepters = resultFromDatabase[0].daccepters;
 				if (curaccepters >= accepters) {
 					utils.sendError(res, 400, "The number of accepters is full");
 					return;
