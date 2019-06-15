@@ -15,6 +15,10 @@ var dutySystem = function() {
 				utils.sendError(res, 400, "Not enough money");
 				return;
 			}
+			if(req.body.accepters < 0 || req.body.money < 0) {
+				utils.sendError(res, 400, "number can't be negative");
+				return;
+			}
 		}
 		catch(error) {
 			utils.sendError(res, 400, "Fail");
@@ -135,7 +139,7 @@ var dutySystem = function() {
 			}
 		}
 		catch(err) {
-			utils.sendError(res, 400, "Failed in taking a duty. 1");
+			utils.sendError(res, 400, "Duty cannot be re-requested");
 			return;
 		}
 		try {
