@@ -10,11 +10,15 @@ router.post('/create', function(req, res, next){
         utils.sendError(res, 400, 'The id format is incorrect(6-8 letter or digit, begin with letter)');
         return;
     }
+    if(!validator.checkPassword(req.body.password)) {
+        utils.sendError(res, 400, "The password format is incorrect(6~12 digit number)");
+        return;
+    }
     if(!validator.checkPhone(req.body.phone)) {
         utils.sendError(res, 400, 'The phone format is incorrect(11 digit number, begin with ~0)');
         return;
     }
-    if(!validator.checkEmail(req.body.phone)) {
+    if(!validator.checkEmail(req.body.email)) {
         utils.sendError(res, 400, 'The email format is incorrect(XXX@XXX.XXX)');
         return;
     }
