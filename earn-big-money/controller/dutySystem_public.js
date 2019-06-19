@@ -389,6 +389,7 @@ var dutySystem = function() {
 			tableStr = "userDuty," + tableStr;
 			conditions.push('userDuty.did = duty.did');
 			conditions.push('userDuty.uid = ' + db.typeTransform(req.query.selectByAccepter));
+			conditions.push("userDuty.status <> 'published'");
 		}
 		if(req.query.selectBySponsor) {
 			conditions.push('duty.dsponsor = ' + db.typeTransform(req.query.selectBySponsor));
