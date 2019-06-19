@@ -31,6 +31,9 @@ router.post('/login', userSystem.loginUser);
 // 登出
 router.get('/logout', utils.loginCheck, userSystem.logoutUser);
 
+// 检查登陆状态
+router.get('/checkStatus', utils.loginCheck, userSystem.checkLogStatus);
+
 // 获取个人信息
 router.get('/user/:account', userSystem.queryUser);
 

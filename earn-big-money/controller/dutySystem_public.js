@@ -500,6 +500,23 @@ var dutySystem = function() {
 			return;
 		}
 	}
+	
+	// 获取任务数量
+	this.getDutyNum = async function(req, res, next){
+		let stru = db.getSQLObject();
+		stru["query"] = "select";
+		stru["tables"] = "userDuty";
+		stru["data"] = {
+			"status" : 0,
+			"count(*)":0
+		};
+		stru["where"]["condition"] = [
+			"uid = " + db.typeTransform(req.session.user.uid),
+		];
+		stru["options"]["group by"] = "status";
+		let result = await db.ControlAPI_obj_async(stru);
+		res.send({ "data": result});
+	};
 }
 
 module.exports = new dutySystem();

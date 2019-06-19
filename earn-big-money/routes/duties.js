@@ -21,6 +21,9 @@ router.delete('/duty/:did', utils.loginCheck, dutySystem.deleteDuty);
 // 筛选任务
 router.get('/screen', dutySystem.screenDuty);
 
+// 获取任务数量
+router.get('/getDutyNum', utils.loginCheck, dutySystem.getDutyNum);
+
 // 接收者commit任务
 router.post('/commit', utils.loginCheck, dutySystem.commitDuty);
 

@@ -85,6 +85,10 @@ var userSystem = function() {
 		});
 	};
 	
+	this.checkLogStatus = function(req, res, next) {
+		res.send("Log in");
+	};
+	
 	// 用户查找，感觉查找的内容可以是任意一个用户，所以没必要做登陆检测
 	this.queryUser = async function(req, res, next) {
 		console.log(req.params)
