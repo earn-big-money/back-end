@@ -68,8 +68,7 @@ var dbController = function() {
 				optionKey.push([key, sqlObj["options"][key]].join(" "));
 			}
 		}
-		
-		//console.log(hasWhere);
+
 		let sql = {
 			"update" : `update ${sqlObj["tables"]} set ${dataKey.join(",")} ${hasWhere? whereSql : ""};`,
 			"select" : `select ${dataKey.join(",")} from ${sqlObj["tables"]} ${hasWhere? whereSql : ""} ${optionKey.join(" ")};`,
@@ -94,9 +93,49 @@ var dbController = function() {
 	};
 
 	this.ControlAPI_obj = function(data, callback){
-		sqlObj = this._structureAnalysis(data);
-		this._generalOperation(sqlObj["sql"], sqlObj["value"], callback);
+		var sqlObj = this._structureAnalysis(data);
+		this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+			if(result == null || result.length == 0){
+				callback(null);
+			}
+			else{
+				callback(result);
+			}
+		});
 	};
+	
+	this.ControlAPI_obj_async = function(data) {
+		var sqlObj = this._structureAnalysis(data);
+		return new Promise((resolved, rejected)=>{
+			this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+				if(result === null){
+					rejected(null);
+				}
+				else{
+					resolved(result);
+				}
+			});
+		});
+	}
+	
+	this.ControlAPI_objs_async = function(...vars) {
+		let len = vars.length;
+		let promiseList = [];
+		for(let i = 0; i < len; i++){
+			let sqlObj = this._structureAnalysis(vars[i]);
+			promiseList.push(new Promise((resolved, rejected)=>{
+				this._generalOperation(sqlObj["sql"], sqlObj["value"], (result)=>{
+					if(result === null){
+						rejected(null);
+					}
+					else{
+						resolved(result);
+					}
+				});
+			}));
+		}
+		return Promise.all(promiseList);
+	}
 	
 	// user是一个结构体，callback是回调函数
 	/*

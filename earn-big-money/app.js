@@ -14,6 +14,8 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var duties = require('./routes/duties');
 var trades = require('./routes/trades');
+var photo = require('./routes/photo');
+var survey = require('./routes/survey');
 var test = require('./routes/test');
 
 // view engine setup
@@ -41,7 +43,7 @@ app.use(session({
 
 // add access control header
 app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
   next();
@@ -52,6 +54,8 @@ app.use('/index', index);
 app.use('/users', users);
 app.use('/duties', duties);
 app.use('/trades', trades);
+app.use('/photo', photo);
+app.use('/survey', survey);
 // 测试环境路径
 app.use('/test', test);
 
@@ -73,8 +77,9 @@ app.use(function(err, req, res, next) {
   res.send();
 });
 
+/*如无必要，请勿开启
 app.listen(8080,function(){
     console.log('run server');
 })
-
+*/
 module.exports = app;
