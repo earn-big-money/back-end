@@ -1,0 +1,964 @@
+openapi: 3.0.0
+info:
+  description: |
+    [more at github](https://github.com/earn-big-money/Dashboard)
+  version: "1.0.0"
+  title: Earn Big Money APIs
+tags:
+  - name: user
+    description: Operations about user
+  - name: duty
+    description: Operations about duty
+  - name: trade
+    description: Trade system
+  - name: photo
+    description: Photo system
+  - name: survey
+    description: Survey system
+paths:
+  /users/create:
+    post:
+      tags:
+        - user
+      summary: Create user
+      requestBody:
+        required: true
+        description: Userinfo object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Invaild message"
+  /users/login:
+    post:
+      tags:
+        - user
+      summary: Log in a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: The account of user
+                password:
+                  type: string
+                  description: The password of user
+              required:
+                - id
+                - password
+      responses:
+        '200':
+          description: Successful operation
+          headers: 
+            Set-Cookie:
+              schema: 
+                type: string
+                example: EBMcookie=abcde12345; Path=/; HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Incorrect username or password"
+  /users/logout:
+    get:
+      tags:
+        - user
+      summary: Log out a user
+      security:
+        - cookieAuth: []
+      responses:
+        default:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+  /users/user/{account}:
+    get:
+      tags:
+        - user
+      summary: get the information of user
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: account
+          in: path
+          description: the account be queried
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: the account of user
+                  username:
+                    type: string
+                    description: The name of user 
+                  phone:
+                    type: string
+                    description: The phone of user
+                  email:
+                    type: string
+                    description: The email of user
+                  status:
+                    type: string
+                    description: user status
+                    enum:
+                      - organization
+                      - student
+                  createTime:
+                    type: string
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+    put:
+      tags:
+        - user
+      summary: update userinfo
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: account
+          in: path
+          description: the account be updated
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The name of user 
+                phone:
+                  type: string
+                  description: The phone of user
+                email:
+                  type: string
+                  description: The email of user
+                status:
+                  type: string
+                  description: user status
+                  enum:
+                    - organization
+                    - student
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in modification."
+  /users/checkStatus:
+    get:
+      tags:
+        - user
+      summary: check the status of user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: the id of user
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /duties/duty/{did}:
+    get:
+      tags:
+        - duty
+      summary: get the information of duty
+      parameters:
+        - name: did
+          in: path
+          description: the id of duty
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: the id of duty
+                  sponsor:
+                    type: string
+                    description: the id of sponsor
+                  title:
+                    type: string
+                  maxAccepters:
+                    type: integer
+                    description: the max accepters
+                  curAccepters:
+                    type: integer
+                    description: the number of current accepters
+                  accepters:
+                    type: array
+                    description: the list of accepters
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: string
+                        status:
+                          type: string
+                  introduction:
+                    type: string
+                  content:
+                    type: string
+                  money:
+                    type: integer
+                    description: the cost for every accepter
+                  startTime:
+                    type: string
+                  endTime:
+                    type: string
+                  type:
+                    $ref: '#/components/schemas/dutyType'
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in finding this duty."
+    put:
+      tags:
+        - duty
+      summary: update duty
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: did
+          in: path
+          description: the id of duty
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Duty'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in modification."
+    delete:
+      tags:
+        - duty
+      summary: delete duty
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: did
+          in: path
+          description: the id of duty
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in deleting a duty."
+  /duties/create:
+    post:
+      tags:
+        - duty
+      summary: Create a duty
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        description: Dutyinfo object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Duty'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  did:
+                    type: string
+                    description: the id of duty created
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in creating a duty."
+  /duties/take:
+    post:
+      tags:
+        - duty
+      summary: Take a duty
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        description: Dutyinfo object
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                  description: the id of duty
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in taking a duty."
+  /duties/commit:
+    post:
+      tags:
+        - duty
+      summary: Commit a duty
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                  description: the id of duty
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Error message."
+  /duties/confirm:
+    post:
+      tags:
+        - duty
+      summary: Confirm a duty
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                  description: the id of duty
+                accepters:
+                  type: array
+                  items: 
+                    type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Error message."
+  /duties/screen:
+    get:
+      tags:
+        - duty
+      summary: get and screen duties
+      parameters:
+        - name: screen
+          in: query
+          description: screen template
+          required: true
+          schema:
+            type: object
+            properties:
+              pageNumber:
+                type: integer
+                description: page number, default = 1
+              countPerPage:
+                type: integer
+                description: the maximum records per page
+              selectBySponsor:
+                type: string
+              selectByAccepter:
+                type: string
+              selectByType:
+                $ref: '#/components/schemas/dutyType'
+              sortType:
+                type: string
+                enum:
+                  - time
+                  - money
+              sortOrder:
+                type: string
+                enum:
+                  - ascend
+                  - descend
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: the total number of duties meeting the requirements
+                  content:
+                    type: array
+                    description: the reusult of filter
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        sponer:
+                          type: string
+                        title:
+                          type: string
+                        money:
+                          type: integer
+                        type:
+                          $ref: '#/components/schemas/dutyType'
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Failed in screening."
+  /duties/getDutyNum:
+    get:
+      tags:
+        - duty
+      summary: statistics
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+                    description: the result
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /trades:
+    get:
+      tags:
+        - trade
+      summary: get the balance of user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balance:
+                    type: integer
+                    description: the balance
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /trades/topup:
+    post:
+      tags:
+        - trade
+      summary: top up
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: The amount topped up
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"    
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /trades/cashout:
+    post:
+      tags:
+        - trade
+      summary: Cash out
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: The amount cashed out
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"    
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /trades/transfer:
+    post:
+      tags:
+        - trade
+      summary: tranfer
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: The amount transferred
+                receiver:
+                  type: string
+                  description: The receiver
+              required:
+                - amount
+                - receiver
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Success"    
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Please login first."
+  /photo/userPhoto{id}:
+    get:
+      tags:
+        - photo
+      summary: get the photo of user
+      parameters:
+        - name: id
+          in: path
+          description: the id of user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Error message."
+  /photo/uploadUserPhoto:
+    post:
+      tags:
+        - photo
+      summary: upload the photo of user
+      requestBody:
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Success"    
+          '400':
+            description: Error message
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Please login first."
+  /photo/dutyPhoto{id}:
+    get:
+      tags:
+        - photo
+      summary: get the photo of duty
+      parameters:
+        - name: id
+          in: path
+          description: the id of duty
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Error message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Msg'
+              example:
+                msg: "Error message."
+  /photo/uploadDutyPhoto:
+    post:
+      tags:
+        - photo
+      summary: upload the photo of duty
+      requestBody:
+        content:
+          image/png:
+            schema:
+              type: string
+              format: binary
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Success"    
+          '400':
+            description: Error message
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Please login first."
+  /survey/data:
+    get:
+      tags:
+        - survey
+      summary: get answers
+      parameters:
+        - name: id
+          in: query
+          description: the id of duty
+          required: true
+          schema:
+            type: string
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: string
+          '400':
+            description: Error message
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Please login first."
+    post:
+      tags:
+        - survey
+      summary: Submit an answer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                did:
+                  type: string
+                answer:
+                  type: string
+                  description:
+                    the json format of answer
+      responses:
+          '200':
+            description: Successful operation
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    template:
+                      type: string
+          '400':
+            description: Error message
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Msg'
+                example:
+                  msg: "Please login first."
+servers:
+  - url: 'https://virtserver.swaggerhub.com/huntingwolf320/EarnBigMoney/1.0.0'
+components:
+  schemas:
+    dutyType:
+      type: string
+      description: the type of duty
+      enum:
+        - survey
+        - legwork
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+          description: user status
+          enum:
+            - organization
+            - student
+    Duty:
+      type: object
+      properties:
+        title:
+          type: string
+        accepters:
+          type: integer
+          description: the number of accepters
+        introduction:
+          type: string
+        content:
+          type: string
+        money:
+          type: integer
+          description: the cost for every accepter
+        startTime:
+          type: string
+        endTime:
+          type: string
+        type:
+          $ref: '#/components/schemas/dutyType'
+    Msg: 
+      type: object
+      properties:
+        msg:
+          type: string
+  securitySchemes:
+    cookieAuth: 
+      type: apiKey
+      in: cookie
+      name: EBMcookie
