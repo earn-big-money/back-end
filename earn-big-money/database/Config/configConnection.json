@@ -11,10 +11,10 @@
 	},
 	
 	"online": {
-		"host"     : "120.77.172.46",
+		"host"     : "cdb-fmjjffl1.gz.tencentcdb.com",
 		"user"     : "testEBM",
-		"password" : "1234",
-		"port"     : "3306",
+		"password" : "EBM12345",
+		"port"     : "10041",
 		"database" : "EBM",
 		"timezone" : "08:00"
 	}
